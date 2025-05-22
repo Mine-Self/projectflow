@@ -15,17 +15,16 @@
       padding: 20px;
       background-color: #f3f3f3;
       direction: rtl;
-      max-width: 600px;
-      margin: auto;
     }
     #app, #login {
+      max-width: 600px;
+      margin: auto;
       background: white;
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
     }
-    input, button, select {
+    input, button {
       padding: 8px;
       margin: 5px 0;
       font-size: 16px;
@@ -33,58 +32,64 @@
     ul {
       list-style: none;
       padding: 0;
-      max-height: 300px;
-      overflow-y: auto;
     }
     li {
       margin: 5px 0;
-      padding: 10px;
+      padding: 5px;
       border-bottom: 1px solid #ccc;
-      cursor: pointer;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      border-radius: 5px;
-      transition: background-color 0.2s;
-    }
-    li:hover {
-      background-color: #e0e0e0;
+      justify-content: space-between;
     }
     .task-done {
       text-decoration: line-through;
       color: gray;
     }
-    .status {
-      padding: 3px 7px;
-      border-radius: 4px;
+    .info-text {
       font-size: 12px;
-      font-weight: bold;
+      color: #666;
+      margin-left: 10px;
+      white-space: nowrap;
+    }
+    .btn {
+      margin-left: 8px;
+      padding: 4px 8px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .btn-edit {
+      background-color: #4CAF50;
       color: white;
+      border: none;
+      border-radius: 4px;
     }
-    .status-not-started {
-      background-color: #999;
+    .btn-delete {
+      background-color: #f44336;
+      color: white;
+      border: none;
+      border-radius: 4px;
     }
-    .status-in-progress {
-      background-color: #007bff;
+    .btn-edit:hover {
+      background-color: #45a049;
     }
-    .status-completed {
-      background-color: #28a745;
+    .btn-delete:hover {
+      background-color: #d32f2f;
     }
-    @media (max-width: 600px) {
-      body {
-        padding: 10px;
-      }
-      input, button, select {
-        width: 100%;
-        box-sizing: border-box;
-      }
-      li {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .status {
-        margin-top: 5px;
-      }
+    .task-text {
+      flex-grow: 1;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    #projectArea {
+      margin-top: 20px;
+      border-top: 1px solid #ddd;
+      padding-top: 15px;
+    }
+    input.edit-input {
+      font-size: 16px;
+      padding: 4px;
+      margin-left: 10px;
+      flex-grow: 1;
     }
   </style>
 </head>
@@ -108,25 +113,10 @@
     <input id="newProjectInput" placeholder="שם פרויקט חדש" />
     <button onclick="addProject()">הוסף פרויקט</button>
 
-    <div id="projectArea" style="display:none; margin-top:20px;">
+    <div id="projectArea" style="display:none;">
       <h4 id="projectTitle"></h4>
-
-      <label for="filterStatus">סינון משימות:</label>
-      <select id="filterStatus" onchange="renderTasks()">
-        <option value="all">הכל</option>
-        <option value="not-started">לא התחיל</option>
-        <option value="in-progress">בעבודה</option>
-        <option value="completed">הושלם</option>
-      </select>
-
       <ul id="taskList"></ul>
-
       <input id="newTaskInput" placeholder="משימה חדשה" />
-      <select id="newTaskStatus">
-        <option value="not-started">לא התחיל</option>
-        <option value="in-progress">בעבודה</option>
-        <option value="completed">הושלם</option>
-      </select>
       <button onclick="addTask()">הוסף משימה</button>
     </div>
   </div>
@@ -135,128 +125,215 @@
     let projects = JSON.parse(localStorage.getItem("projects") || "[]");
     let currentProjectIndex = null;
 
+    function formatDate(timestamp) {
+      const d = new Date(timestamp);
+      return d.toLocaleDateString("he-IL", { year: "numeric", month: "2-digit", day: "2-digit" });
+    }
+
     function renderProjects() {
       const ul = document.getElementById("projectList");
       ul.innerHTML = "";
       projects.forEach((proj, index) => {
         const li = document.createElement("li");
-        li.textContent = proj.name;
-        li.style.cursor = "pointer";
-        li.onclick = () => openProject(index);
+
+        // שם ותאריך יצירה
+        const infoSpan = document.createElement("span");
+        infoSpan.textContent = `${proj.name} (נוצר ב: ${formatDate(proj.createdAt)})`;
+        infoSpan.style.cursor = "pointer";
+        infoSpan.onclick = () => openProject(index);
+
+        // כפתור עריכה
+        const editBtn = document.createElement("button");
+        editBtn.textContent = "ערוך";
+        editBtn.className = "btn btn-edit";
+        editBtn.onclick = (e) => {
+          e.stopPropagation();
+          editProjectName(index);
+        };
+
+        // כפתור מחיקה
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "מחק";
+        deleteBtn.className = "btn btn-delete";
+        deleteBtn.onclick = (e) => {
+          e.stopPropagation();
+          if (confirm(`למחוק את הפרויקט "${proj.name}"?`)) {
+            projects.splice(index, 1);
+            if (currentProjectIndex === index) {
+              currentProjectIndex = null;
+              document.getElementById("projectArea").style.display = "none";
+            }
+            save();
+            renderProjects();
+          }
+        };
+
+        li.appendChild(infoSpan);
+        li.appendChild(editBtn);
+        li.appendChild(deleteBtn);
+
         ul.appendChild(li);
       });
     }
 
-    function addProject() {
-      const input = document.getElementById("newProjectInput");
-      if (!input.value.trim()) return;
-      projects.push({ name: input.value.trim(), tasks: [] });
-      input.value = "";
-      save();
-      renderProjects();
+    function editProjectName(index) {
+      const li = document.getElementById("projectList").children[index];
+      const proj = projects[index];
+
+      li.innerHTML = "";
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.value = proj.name;
+      input.className = "edit-input";
+
+      input.onkeydown = (e) => {
+        if (e.key === "Enter") {
+          const newName = input.value.trim();
+          if (!newName) return alert("שם פרויקט לא יכול להיות ריק");
+          // בדיקה כפילות שמות (ללא תלות באותיות)
+          const duplicate = projects.some((p, i) => i !== index && p.name.toLowerCase() === newName.toLowerCase());
+          if (duplicate) return alert("קיים פרויקט עם שם זהה");
+          proj.name = newName;
+          save();
+          renderProjects();
+        }
+        if (e.key === "Escape") {
+          renderProjects();
+        }
+      };
+
+      input.onblur = () => {
+        renderProjects();
+      };
+
+      li.appendChild(input);
+      input.focus();
     }
 
     function openProject(index) {
       currentProjectIndex = index;
       const project = projects[index];
       document.getElementById("projectArea").style.display = "block";
-      document.getElementById("projectTitle").textContent = "פרויקט: " + project.name;
+      document.getElementById("projectTitle").textContent = `פרויקט: ${project.name}`;
       renderTasks();
     }
 
     function renderTasks() {
-      if (currentProjectIndex === null) return;
       const ul = document.getElementById("taskList");
       ul.innerHTML = "";
       const tasks = projects[currentProjectIndex].tasks;
-
-      const filter = document.getElementById("filterStatus").value;
-
       tasks.forEach((task, idx) => {
-        // סינון
-        if (
-          filter === "not-started" && task.status !== "not-started" ||
-          filter === "in-progress" && task.status !== "in-progress" ||
-          filter === "completed" && task.status !== "completed"
-        ) {
-          return; // דילוג
-        }
-
         const li = document.createElement("li");
 
+        // טקסט המשימה עם סטטוס
         const taskText = document.createElement("span");
         taskText.textContent = task.text;
-        if (task.status === "completed") {
-          taskText.classList.add("task-done");
-        }
-        li.appendChild(taskText);
-
-        // סטטוס - תווית צבעונית
-        const statusSpan = document.createElement("span");
-        statusSpan.textContent = statusText(task.status);
-        statusSpan.className = "status " + statusClass(task.status);
-        li.appendChild(statusSpan);
-
-        // שינוי סטטוס בלחיצה על המשימה
-        li.onclick = () => {
-          cycleStatus(idx);
+        taskText.className = "task-text";
+        if (task.done) taskText.classList.add("task-done");
+        taskText.onclick = () => {
+          task.done = !task.done;
           save();
           renderTasks();
         };
+
+        // תאריך יצירה
+        const dateSpan = document.createElement("span");
+        dateSpan.className = "info-text";
+        dateSpan.textContent = `נוצר ב: ${formatDate(task.createdAt)}`;
+
+        // כפתור עריכה
+        const editBtn = document.createElement("button");
+        editBtn.textContent = "ערוך";
+        editBtn.className = "btn btn-edit";
+        editBtn.onclick = (e) => {
+          e.stopPropagation();
+          editTaskText(idx);
+        };
+
+        // כפתור מחיקה
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "מחק";
+        deleteBtn.className = "btn btn-delete";
+        deleteBtn.onclick = (e) => {
+          e.stopPropagation();
+          if (confirm(`למחוק את המשימה "${task.text}"?`)) {
+            tasks.splice(idx, 1);
+            save();
+            renderTasks();
+          }
+        };
+
+        li.appendChild(taskText);
+        li.appendChild(dateSpan);
+        li.appendChild(editBtn);
+        li.appendChild(deleteBtn);
 
         ul.appendChild(li);
       });
     }
 
-    function addTask() {
-      const input = document.getElementById("newTaskInput");
-      const statusSelect = document.getElementById("newTaskStatus");
-      if (!input.value.trim()) return;
-      projects[currentProjectIndex].tasks.push({
-        text: input.value.trim(),
-        status: statusSelect.value,
-      });
+    function editTaskText(taskIndex) {
+      const ul = document.getElementById("taskList");
+      const li = ul.children[taskIndex];
+      const task = projects[currentProjectIndex].tasks[taskIndex];
+
+      li.innerHTML = "";
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.value = task.text;
+      input.className = "edit-input";
+
+      input.onkeydown = (e) => {
+        if (e.key === "Enter") {
+          const newText = input.value.trim();
+          if (!newText) return alert("טקסט המשימה לא יכול להיות ריק");
+          task.text = newText;
+          save();
+          renderTasks();
+        }
+        if (e.key === "Escape") {
+          renderTasks();
+        }
+      };
+
+      input.onblur = () => {
+        renderTasks();
+      };
+
+      li.appendChild(input);
+      input.focus();
+    }
+
+    function addProject() {
+      const input = document.getElementById("newProjectInput");
+      const newName = input.value.trim();
+      if (!newName) return alert("אנא הזן שם פרויקט");
+      const duplicate = projects.some(p => p.name.toLowerCase() === newName.toLowerCase());
+      if (duplicate) return alert("קיים פרויקט עם שם זהה");
+      projects.push({ name: newName, tasks: [], createdAt: Date.now() });
       input.value = "";
-      statusSelect.value = "not-started";
+      save();
+      renderProjects();
+    }
+
+    function addTask() {
+      if (currentProjectIndex === null) return alert("בחר פרויקט קודם");
+      const input = document.getElementById("newTaskInput");
+      const newText = input.value.trim();
+      if (!newText) return alert("אנא הזן טקסט למשימה");
+      projects[currentProjectIndex].tasks.push({ text: newText, done: false, createdAt: Date.now() });
+      input.value = "";
       save();
       renderTasks();
-    }
-
-    function cycleStatus(taskIndex) {
-      const task = projects[currentProjectIndex].tasks[taskIndex];
-      switch (task.status) {
-        case "not-started":
-          task.status = "in-progress";
-          break;
-        case "in-progress":
-          task.status = "completed";
-          break;
-        case "completed":
-          task.status = "not-started";
-          break;
-      }
-    }
-
-    function statusText(status) {
-      switch (status) {
-        case "not-started": return "לא התחיל";
-        case "in-progress": return "בעבודה";
-        case "completed": return "הושלם";
-      }
-    }
-
-    function statusClass(status) {
-      switch (status) {
-        case "not-started": return "status-not-started";
-        case "in-progress": return "status-in-progress";
-        case "completed": return "status-completed";
-      }
     }
 
     function save() {
       localStorage.setItem("projects", JSON.stringify(projects));
     }
 
+    // אתחול תצוגה
     renderProjects();
   </script>
 </body>
