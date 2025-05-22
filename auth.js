@@ -14,24 +14,28 @@ firebase.initializeApp(firebaseConfig);
 // הגדרת ספק ההתחברות של Google
 const provider = new firebase.auth.GoogleAuthProvider();
 provider.setCustomParameters({
-  hd: "gmail.com" // רק חשבונות Gmail (אפשר גם למחוק את השורה הזאת אם תרצה כל כתובת)
+  hd: "gmail.com" // אפשר למחוק אם לא רוצים להגביל לדומיין Gmail
 });
 
 // התחברות בלחיצה
 function signInWithGoogle() {
-firebase.auth().signInWithPopup(provider)
-  .then((result) => {
-    const user = result.user;
-    const allowedEmails = ["alexmu14@gmail.com", "mualex1970@gmail.com", "example3@gmail.com"];
-    if (allowedEmails.includes(user.email)) {
-      document.getElementById("login").style.display = "none";
-      document.getElementById("app").style.display = "block";
-      document.getElementById("userEmail").innerText = user.email;
-    } else {
-      alert("אין לך הרשאה לגשת למערכת הזו.");
-      firebase.auth().signOut();
-    }
-  })
+  firebase.auth().signInWithPopup(provider)
+    .then((result) => {
+      const user = result.user;
+      const allowedEmails = [
+        "alexmu14@gmail.com",
+        "mualex1970@gmail.com"
+      ];
+
+      if (allowedEmails.includes(user.email)) {
+        document.getElementById("login").style.display = "none";
+        document.getElementById("app").style.display = "block";
+        document.getElementById("userEmail").innerText = user.email;
+      } else {
+        alert("אין לך הרשאה לגשת למערכת הזו.");
+        firebase.auth().signOut();
+      }
+    })
     .catch((error) => {
       console.error("שגיאה בהתחברות:", error);
       alert("שגיאה בהתחברות");
@@ -40,7 +44,12 @@ firebase.auth().signInWithPopup(provider)
 
 // התחברות אוטומטית אם כבר מחובר
 firebase.auth().onAuthStateChanged((user) => {
-  if (user && user.email === "alexmu14@gmail.com") {
+  const allowedEmails = [
+    "alexmu14@gmail.com",
+    "mualex1970@gmail.com"
+  ];
+
+  if (user && allowedEmails.includes(user.email)) {
     document.getElementById("login").style.display = "none";
     document.getElementById("app").style.display = "block";
     document.getElementById("userEmail").innerText = user.email;
