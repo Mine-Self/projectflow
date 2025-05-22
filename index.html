@@ -8,7 +8,7 @@
 </head>
 <body>
 
-  <!-- כפתור לפתיחת תפריט צד -->
+  <!-- כפתור תפריט צד -->
   <button id="menuButton" class="menu-btn">☰ תפריט</button>
 
   <!-- תפריט צד -->
@@ -20,7 +20,7 @@
   <!-- כפתור להוספת פרויקט -->
   <button id="showProjectFormBtn" class="add-project-btn">הוסף פרויקט</button>
 
-  <!-- טופס הוספת פרויקט - מוסתר תחילה -->
+  <!-- טופס הוספת פרויקט -->
   <div id="projectForm" style="display:none; margin: 15px 0;">
     <input type="text" id="newProjectInput" placeholder="שם פרויקט חדש" />
     <button id="saveProjectBtn">שמור</button>
@@ -32,11 +32,10 @@
 
   <!-- אזור פרויקט נבחר -->
   <div id="projectArea" style="display:none; margin-top: 30px;">
-
     <h2 id="projectTitle"></h2>
     <p id="projectDate" style="color: gray; font-size: 0.9em;"></p>
 
-    <!-- סינון סטטוס במשימות -->
+    <!-- סינון סטטוס משימות -->
     <div id="taskFilter" style="margin-bottom: 15px;">
       <label for="statusFilterSelect">סינון משימות:</label>
       <select id="statusFilterSelect">

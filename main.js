@@ -1,8 +1,7 @@
-// --- משתנים גלובליים ---
 let projects = JSON.parse(localStorage.getItem("projects") || "[]");
 let currentProjectId = null;
 
-// --- אלמנטים מה- DOM ---
+// DOM אלמנטים
 const projectListEl = document.getElementById("projectList");
 const projectFormEl = document.getElementById("projectForm");
 const showProjectFormBtn = document.getElementById("showProjectFormBtn");
@@ -25,12 +24,12 @@ const logoutBtn = document.getElementById("logoutBtn");
 
 const statusFilterSelect = document.getElementById("statusFilterSelect");
 
-// --- פונקציות ---
-
+// שמירת נתונים ב-localStorage
 function save() {
   localStorage.setItem("projects", JSON.stringify(projects));
 }
 
+// עיצוב תאריך לקריאה
 function formatDate(dateStr) {
   const date = new Date(dateStr);
   return date.toLocaleDateString("he-IL", {
@@ -45,7 +44,8 @@ function formatDate(dateStr) {
 // הצגת רשימת פרויקטים עם כפתורי עריכה ומחיקה
 function renderProjects() {
   projectListEl.innerHTML = "";
-  projects.forEach((proj) => {
+
+  projects.forEach(proj => {
     const li = document.createElement("li");
     li.classList.add("project-item");
 
@@ -81,20 +81,22 @@ function renderProjects() {
   });
 }
 
+// בחירת פרויקט ועדכון המשימות בהתאם
 function selectProject(id) {
-  if (currentProjectId === id) return; // אם כבר נבחר, לא משנה
+  if (currentProjectId === id) return;
   currentProjectId = id;
+
   const project = projects.find(p => p.id === id);
   if (!project) return;
 
   projectAreaEl.style.display = "block";
-
   projectTitleEl.textContent = project.name;
   projectDateEl.textContent = `נוצר בתאריך: ${formatDate(project.createdAt)}`;
 
   renderTasks();
 }
 
+// הצגת המשימות עם סינון לפי סטטוס
 function renderTasks() {
   taskListEl.innerHTML = "";
   const project = projects.find(p => p.id === currentProjectId);
@@ -103,15 +105,11 @@ function renderTasks() {
   let filteredTasks = project.tasks;
   const filter = statusFilterSelect.value;
 
-  if (filter === "todo") {
-    filteredTasks = filteredTasks.filter(t => t.status === "todo");
-  } else if (filter === "inprogress") {
-    filteredTasks = filteredTasks.filter(t => t.status === "inprogress");
-  } else if (filter === "done") {
-    filteredTasks = filteredTasks.filter(t => t.status === "done");
-  }
+  if (filter === "todo") filteredTasks = filteredTasks.filter(t => t.status === "todo");
+  else if (filter === "inprogress") filteredTasks = filteredTasks.filter(t => t.status === "inprogress");
+  else if (filter === "done") filteredTasks = filteredTasks.filter(t => t.status === "done");
 
-  filteredTasks.forEach((task) => {
+  filteredTasks.forEach(task => {
     const li = document.createElement("li");
     li.classList.add("task-item");
 
@@ -137,7 +135,7 @@ function renderTasks() {
       renderTasks();
     });
 
-    // עריכת טקסט המשימה בלחיצה על "ערוך"
+    // עריכת טקסט המשימה
     const editBtn = btn.querySelector(".edit-task-btn");
     editBtn.addEventListener("click", () => {
       const span = btn.querySelector("span");
@@ -204,7 +202,7 @@ function deleteProject(id) {
   }
 }
 
-// עריכת שם פרויקט (פשוט שואל בprompt)
+// עריכת שם פרויקט (שימוש ב-prompt)
 function editProject(id) {
   const project = projects.find(p => p.id === id);
   if (!project) return;
@@ -271,7 +269,7 @@ function hideProjectForm() {
   newProjectInput.value = "";
 }
 
-// --- אירועים ---
+// אירועים
 showProjectFormBtn.addEventListener("click", () => {
   projectFormEl.style.display = "block";
   showProjectFormBtn.style.display = "none";
@@ -285,7 +283,6 @@ menuButton.addEventListener("click", toggleSidebar);
 logoutBtn.addEventListener("click", () => alert("התנתקת בהצלחה!"));
 statusFilterSelect.addEventListener("change", renderTasks);
 
-// בעת טעינת הדף
 window.onload = () => {
   renderProjects();
   setSidebarEmail("alexmu14@gmail.com");
