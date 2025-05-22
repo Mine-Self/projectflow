@@ -1,45 +1,60 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>ProjectFlow</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- Firebase -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css">
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-  <link rel="stylesheet" href="style.css" />
+  <script src="auth.js" defer></script>
   <script src="main.js" defer></script>
 </head>
 <body>
-  <!-- בר עליון -->
-  <div id="topBar">
-    <button id="menuButton">&#9776;</button> <!-- סמל תפריט צד -->
+  <!-- תפריט צד -->
+  <div id="sideMenu" class="side-menu">
+    <div class="side-menu-header">
+      <span id="userEmailMenu"></span>
+    </div>
+    <div class="side-menu-footer">
+      <button onclick="firebase.auth().signOut()">התנתק</button>
+    </div>
+  </div>
+
+  <!-- סרגל עליון -->
+  <div class="top-bar">
+    <button id="menuButton">☰</button>
     <button id="addProjectBtn">+ פרוייקט</button>
   </div>
 
-  <!-- תפריט צד -->
-  <div id="sideMenu" class="side-menu-closed">
-    <div id="sideMenuHeader">
-      <span id="userEmail">alexmu14@gmail.com</span>
-    </div>
-    <button id="signOutBtn">התנתק</button>
+  <!-- ממשק התחברות -->
+  <div id="login">
+    <h2>ProjectFlow</h2>
+    <p>התחבר עם חשבון Google שלך:</p>
+    <button onclick="signInWithGoogle()">התחבר עם Google</button>
   </div>
 
-  <!-- תוכן ראשי -->
-  <div id="content">
-    <div id="addProjectForm" class="hidden">
-      <input type="text" id="newProjectInput" placeholder="שם פרויקט חדש" />
+  <!-- אפליקציה -->
+  <div id="app" style="display: none;">
+    <div id="projectInputContainer" class="hidden">
+      <input id="newProjectInput" placeholder="שם פרויקט חדש">
       <button id="saveProjectBtn">שמור</button>
       <button id="cancelProjectBtn">ביטול</button>
     </div>
 
-    <h3>הפרויקטים שלך</h3>
     <ul id="projectList"></ul>
 
     <div id="projectArea" style="display:none;">
       <h4 id="projectTitle"></h4>
+      <select id="taskFilter">
+        <option value="all">הכל</option>
+        <option value="todo">לטיפול</option>
+        <option value="inprogress">בתהליך</option>
+        <option value="done">בוצע</option>
+      </select>
       <ul id="taskList"></ul>
-      <!-- כאן יגיעו המשימות -->
+      <input id="newTaskInput" placeholder="משימה חדשה">
+      <button id="addTaskBtn">הוסף משימה</button>
     </div>
   </div>
 </body>
