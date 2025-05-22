@@ -6,91 +6,61 @@ body {
   direction: rtl;
 }
 
-#login, #app {
-  max-width: 600px;
-  margin: auto;
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+#sideMenuToggle {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 1001;
 }
 
-input, button, select {
-  padding: 8px;
+#sideMenu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 250px;
+  height: 100%;
+  background: #fff;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.3);
+  padding: 20px;
+  z-index: 1000;
+}
+
+#sideMenu.hidden {
+  display: none;
+}
+
+button {
   margin: 5px 0;
+  padding: 8px 12px;
   font-size: 16px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
+  cursor: pointer;
+}
+
+input, select {
+  padding: 6px;
+  margin: 5px 0;
 }
 
 ul {
   list-style: none;
   padding: 0;
-  margin: 10px 0;
 }
 
 li {
-  margin: 8px 0;
-  padding: 8px;
+  margin: 5px 0;
+  padding: 5px;
   border-bottom: 1px solid #ccc;
-  background: #f9f9f9;
-  border-radius: 5px;
 }
 
-.task-controls, .add-task, #addProjectForm {
-  margin-top: 20px;
-}
-
-.add-project-button {
-  background-color: #4CAF50;
-  color: white;
-  margin-bottom: 10px;
-  width: 100%;
-}
-
-.menu-button {
-  background-color: #333;
-  color: white;
-}
-
-.top-bar {
-  display: flex;
-  justify-content: flex-start;
-  gap: 10px;
-  margin-bottom: 15px;
-}
-
-.side-menu {
-  position: fixed;
-  top: 0;
-  left: -250px;
-  width: 250px;
-  height: 100%;
-  background: #333;
-  color: white;
-  padding: 20px;
-  transition: left 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.side-menu.open {
-  left: 0;
-}
-
-.side-menu-header {
-  font-size: 16px;
-}
-
-.side-menu-footer {
-  margin-top: auto;
-}
-
-.form-hidden {
+.hidden {
   display: none;
 }
 
-#addProjectContainer {
-  margin-bottom: 20px;
+.project-header {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
 }
