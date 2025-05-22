@@ -7,62 +7,27 @@
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="auth.js" defer></script>
+  <script src="main.js" defer></script>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- תפריט צד -->
-  <div id="sideMenu" class="side-menu">
-    <div class="side-menu-header">
-      <p id="userEmail"></p>
-    </div>
-    <button id="signOutBtn">התנתק</button>
-  </div>
+  <!-- כפתור תפריט צד בפינה השמאלית עליונה -->
+  <button id="menuButton" title="תפריט צד">☰</button>
 
-  <!-- כפתור תפריט צד -->
-  <button id="menuBtn" class="menu-btn">☰</button>
+  <div id="app" style="display:none;">
+    <!-- כפתור הוספת פרויקט במרכז העמוד -->
+    <div class="center-container">
+      <button id="addProjectBtn">+ פרוייקט</button>
+    </div>
+
+    <!-- כאן יהיה תוכן נוסף בעתיד -->
+  </div>
 
   <div id="login">
     <h2>ProjectFlow</h2>
     <p>התחבר עם חשבון Google שלך:</p>
     <button onclick="signInWithGoogle()">התחבר עם Google</button>
   </div>
-
-  <div id="app" style="display:none;">
-    <h2>ניהול פרוייקטים</h2>
-
-    <!-- כפתור הוסף פרויקט -->
-    <button id="showAddProjectBtn" class="add-project-btn">הוסף פרויקט</button>
-
-    <!-- אזור הוספת פרויקט (מוסתר בתחילה) -->
-    <div id="addProjectArea" style="display:none;">
-      <input id="newProjectInput" placeholder="שם פרויקט חדש" />
-      <button id="saveProjectBtn">שמור</button>
-      <button id="cancelProjectBtn">ביטול</button>
-    </div>
-
-    <hr />
-
-    <ul id="projectList"></ul>
-
-    <div id="projectArea" style="display:none;">
-      <h3 id="projectTitle"></h3>
-      
-      <label for="taskFilter">סינון משימות:</label>
-      <select id="taskFilter">
-        <option value="all">הכל</option>
-        <option value="todo">לעשות</option>
-        <option value="inprogress">בתהליך</option>
-        <option value="done">בוצע</option>
-      </select>
-
-      <ul id="taskList"></ul>
-
-      <input id="newTaskInput" placeholder="משימה חדשה" />
-      <button id="addTaskBtn">הוסף משימה</button>
-    </div>
-  </div>
-
-  <script src="auth.js" defer></script>
-  <script src="main.js" defer></script>
 </body>
 </html>
