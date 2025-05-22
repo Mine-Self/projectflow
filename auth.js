@@ -14,7 +14,7 @@ firebase.initializeApp(firebaseConfig);
 // הגדרת ספק ההתחברות של Google
 const provider = new firebase.auth.GoogleAuthProvider();
 provider.setCustomParameters({
-  hd: "gmail.com" // אפשר למחוק אם לא רוצים להגביל לדומיין Gmail
+  hd: "gmail.com"
 });
 
 // התחברות בלחיצה
@@ -31,6 +31,10 @@ function signInWithGoogle() {
         document.getElementById("login").style.display = "none";
         document.getElementById("app").style.display = "block";
         document.getElementById("userEmail").innerText = user.email;
+
+        // טען את הפרויקטים אחרי התחברות
+        renderProjects();
+
       } else {
         alert("אין לך הרשאה לגשת למערכת הזו.");
         firebase.auth().signOut();
@@ -53,6 +57,10 @@ firebase.auth().onAuthStateChanged((user) => {
     document.getElementById("login").style.display = "none";
     document.getElementById("app").style.display = "block";
     document.getElementById("userEmail").innerText = user.email;
+
+    // טען את הפרויקטים אם המשתמש כבר מחובר
+    renderProjects();
+
   } else {
     document.getElementById("login").style.display = "block";
     document.getElementById("app").style.display = "none";
