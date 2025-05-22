@@ -23,10 +23,9 @@
     </div>
   </div>
 
-  <!-- כפתור תפריט צד -->
+  <!-- אזור עליון -->
   <div class="top-bar">
     <button id="toggleMenu" class="menu-button">☰</button>
-    <button id="showAddProjectForm" class="add-project-button">+ הוסף פרויקט</button>
   </div>
 
   <!-- התחברות -->
@@ -39,15 +38,17 @@
   <!-- אפליקציה -->
   <div id="app" style="display:none;">
     <div id="projectSection">
-      <div id="projectListContainer">
-        <ul id="projectList"></ul>
+      <div id="addProjectContainer">
+        <button id="showAddProjectForm" class="add-project-button">+ הוסף פרויקט</button>
+
+        <div id="addProjectForm" class="form-hidden">
+          <input id="newProjectInput" placeholder="שם פרויקט חדש">
+          <button onclick="saveNewProject()">שמור</button>
+          <button onclick="cancelAddProject()">ביטול</button>
+        </div>
       </div>
 
-      <div id="addProjectForm" class="form-hidden">
-        <input id="newProjectInput" placeholder="שם פרויקט חדש">
-        <button onclick="saveNewProject()">שמור</button>
-        <button onclick="cancelAddProject()">ביטול</button>
-      </div>
+      <ul id="projectList"></ul>
     </div>
 
     <div id="projectArea" style="display:none;">

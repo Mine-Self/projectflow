@@ -12,12 +12,14 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   showAddProjectBtn.addEventListener("click", () => {
+    showAddProjectBtn.style.display = "none";
     addProjectForm.classList.remove("form-hidden");
   });
 
   window.cancelAddProject = () => {
-    addProjectForm.classList.add("form-hidden");
     document.getElementById("newProjectInput").value = "";
+    addProjectForm.classList.add("form-hidden");
+    showAddProjectBtn.style.display = "inline-block";
   };
 
   window.saveNewProject = () => {
@@ -136,7 +138,6 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem("projects", JSON.stringify(projects));
   }
 
-  // הצג את המייל בתפריט צד
   firebase.auth().onAuthStateChanged((user) => {
     if (user) {
       document.getElementById("sideMenuEmail").textContent = user.email;

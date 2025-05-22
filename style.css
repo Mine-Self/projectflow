@@ -44,7 +44,8 @@ li {
 .add-project-button {
   background-color: #4CAF50;
   color: white;
-  margin-right: 10px;
+  margin-bottom: 10px;
+  width: 100%;
 }
 
 .menu-button {
@@ -54,7 +55,7 @@ li {
 
 .top-bar {
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 10px;
   margin-bottom: 15px;
 }
@@ -84,4 +85,12 @@ li {
 
 .side-menu-footer {
   margin-top: auto;
+}
+
+.form-hidden {
+  display: none;
+}
+
+#addProjectContainer {
+  margin-bottom: 20px;
 }
