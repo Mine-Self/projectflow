@@ -1,57 +1,70 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="he">
 <head>
   <meta charset="UTF-8" />
-  <title>ניהול פרויקטים</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ProjectFlow</title>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-
   <!-- כפתור תפריט צד -->
   <button id="menuButton" class="menu-btn">☰ תפריט</button>
 
-  <!-- תפריט צד -->
-  <aside id="sidebar" aria-hidden="true" style="display:none; position: fixed; top: 0; right: 0; width: 250px; height: 100%; background: #ddd; padding: 20px; box-shadow: -2px 0 5px rgba(0,0,0,0.3); z-index:1000;">
-    <div id="sidebarEmail" style="margin-bottom: 20px; font-weight: bold;"></div>
-    <button id="logoutBtn" style="padding: 10px; width: 100%; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">התנתק</button>
-  </aside>
-
-  <!-- כפתור להוספת פרויקט -->
+  <!-- כפתור הוספת פרויקט -->
   <button id="showProjectFormBtn" class="add-project-btn">הוסף פרויקט</button>
 
-  <!-- טופס הוספת פרויקט -->
-  <div id="projectForm" style="display:none; margin: 15px 0;">
-    <input type="text" id="newProjectInput" placeholder="שם פרויקט חדש" />
-    <button id="saveProjectBtn">שמור</button>
-    <button id="cancelProjectBtn">ביטול</button>
+  <!-- תפריט צד -->
+  <div id="sidebar" class="sidebar">
+    <div class="sidebar-header">
+      מחובר בתור: <span id="userEmail">-</span>
+    </div>
+    <div class="sidebar-footer">
+      <button id="logout">התנתק</button>
+    </div>
   </div>
 
-  <!-- רשימת פרויקטים -->
-  <ul id="projectList" class="project-list"></ul>
+  <div class="container" id="app" style="display: none">
+    <h1>ProjectFlow</h1>
 
-  <!-- אזור פרויקט נבחר -->
-  <div id="projectArea" style="display:none; margin-top: 30px;">
-    <h2 id="projectTitle"></h2>
-    <p id="projectDate" style="color: gray; font-size: 0.9em;"></p>
-
-    <!-- סינון סטטוס משימות -->
-    <div id="taskFilter" style="margin-bottom: 15px;">
-      <label for="statusFilterSelect">סינון משימות:</label>
-      <select id="statusFilterSelect">
-        <option value="all">הכל</option>
-        <option value="todo">לפני ביצוע</option>
-        <option value="inprogress">בתהליך</option>
-        <option value="done">בוצע</option>
-      </select>
+    <div id="projectForm" style="display:none;">
+      <input type="text" id="newProjectName" placeholder="שם פרויקט חדש" />
+      <button id="saveProjectBtn">שמור</button>
+      <button id="cancelProjectBtn">ביטול</button>
     </div>
 
-    <input type="text" id="newTaskInput" placeholder="הוסף משימה" />
-    <button id="addTaskBtn">הוסף משימה</button>
+    <div id="projectList"></div>
 
-    <ul id="taskList" class="task-list"></ul>
+    <div id="taskSection" style="display: none;">
+      <h2>משימות עבור: <span id="currentProjectName"></span></h2>
+
+      <!-- סינון משימות לפי סטטוס -->
+      <select id="statusFilter">
+        <option value="all">הצג הכל</option>
+        <option value="todo">לעשות</option>
+        <option value="in-progress">בתהליך</option>
+        <option value="done">בוצע</option>
+      </select>
+
+      <div id="taskList"></div>
+
+      <div id="taskForm">
+        <input type="text" id="newTaskName" placeholder="שם משימה חדשה" />
+        <select id="newTaskStatus">
+          <option value="todo">לעשות</option>
+          <option value="in-progress">בתהליך</option>
+          <option value="done">בוצע</option>
+        </select>
+        <button id="addTaskBtn">הוסף משימה</button>
+      </div>
+    </div>
   </div>
 
+  <div id="login">
+    <h2>התחברות</h2>
+    <button onclick="loginWithGoogle()">התחבר עם Google</button>
+  </div>
+
+  <script src="auth.js"></script>
   <script src="main.js"></script>
 </body>
 </html>
