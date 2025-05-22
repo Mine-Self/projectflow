@@ -1,93 +1,88 @@
-let projects = JSON.parse(localStorage.getItem("projects") || "[]");
-let currentProjectIndex = null;
-
-// תצוגת תפריט צד
-document.getElementById("menuButton").addEventListener("click", () => {
+document.addEventListener("DOMContentLoaded", () => {
   const sideMenu = document.getElementById("sideMenu");
-  sideMenu.classList.toggle("open");
-});
+  const menuButton = document.getElementById("menuButton");
+  const addProjectBtn = document.getElementById("addProjectBtn");
+  const projectControls = document.getElementById("projectControls");
+  const saveProjectBtn = document.getElementById("saveProjectBtn");
+  const cancelProjectBtn = document.getElementById("cancelProjectBtn");
 
-// כפתור הוספת פרויקט
-document.getElementById("addProjectBtn").addEventListener("click", () => {
-  document.getElementById("projectInputContainer").classList.remove("hidden");
-});
+  menuButton.addEventListener("click", () => {
+    sideMenu.classList.toggle("show");
+  });
 
-// כפתור ביטול
-document.getElementById("cancelProjectBtn").addEventListener("click", () => {
-  document.getElementById("projectInputContainer").classList.add("hidden");
-  document.getElementById("newProjectInput").value = "";
-});
+  addProjectBtn.addEventListener("click", () => {
+    projectControls.classList.remove("hidden");
+    addProjectBtn.style.display = "none";
+  });
 
-// כפתור שמירה
-document.getElementById("saveProjectBtn").addEventListener("click", () => {
-  const input = document.getElementById("newProjectInput");
-  const name = input.value.trim();
-  if (!name) return;
-  if (projects.find(p => p.name === name)) {
-    alert("כבר קיים פרויקט עם שם זהה.");
-    return;
+  cancelProjectBtn.addEventListener("click", () => {
+    document.getElementById("newProjectInput").value = "";
+    projectControls.classList.add("hidden");
+    addProjectBtn.style.display = "inline";
+  });
+
+  saveProjectBtn.addEventListener("click", () => {
+    const input = document.getElementById("newProjectInput");
+    const name = input.value.trim();
+    if (!name) return;
+
+    // תוודא שאין שם כפול
+    if (projects.some(p => p.name === name)) {
+      alert("כבר קיים פרוייקט עם שם זהה.");
+      return;
+    }
+
+    const project = {
+      name,
+      tasks: [],
+      createdAt: new Date().toISOString()
+    };
+
+    projects.push(project);
+    input.value = "";
+    saveProjects();
+    renderProjects();
+
+    projectControls.classList.add("hidden");
+    addProjectBtn.style.display = "inline";
+  });
+
+  function saveProjects() {
+    localStorage.setItem("projects", JSON.stringify(projects));
   }
-  projects.push({ name, tasks: [], createdAt: new Date().toISOString() });
-  input.value = "";
-  saveProjects();
+
+  function renderProjects() {
+    const list = document.getElementById("projectList");
+    list.innerHTML = "";
+    projects.forEach((proj, index) => {
+      const li = document.createElement("li");
+      li.textContent = proj.name;
+      li.addEventListener("click", () => openProject(index));
+      list.appendChild(li);
+    });
+  }
+
+  function openProject(index) {
+    currentProjectIndex = index;
+    document.getElementById("projectTitle").textContent = projects[index].name;
+    document.getElementById("projectArea").style.display = "block";
+    renderTasks();
+  }
+
+  function renderTasks() {
+    const list = document.getElementById("taskList");
+    list.innerHTML = "";
+    const project = projects[currentProjectIndex];
+    project.tasks.forEach(task => {
+      const li = document.createElement("li");
+      li.textContent = task.text;
+      list.appendChild(li);
+    });
+  }
+
+  // משתנים כלליים
+  window.projects = JSON.parse(localStorage.getItem("projects") || "[]");
+  window.currentProjectIndex = null;
+
   renderProjects();
-  document.getElementById("projectInputContainer").classList.add("hidden");
 });
-
-// רינדור פרויקטים
-function renderProjects() {
-  const ul = document.getElementById("projectList");
-  ul.innerHTML = "";
-  projects.forEach((proj, index) => {
-    const li = document.createElement("li");
-    li.textContent = proj.name;
-    li.style.cursor = "pointer";
-    li.onclick = () => openProject(index);
-    ul.appendChild(li);
-  });
-}
-
-// פתיחת פרויקט
-function openProject(index) {
-  currentProjectIndex = index;
-  const project = projects[index];
-  document.getElementById("projectArea").style.display = "block";
-  document.getElementById("projectTitle").textContent = "פרויקט: " + project.name;
-  renderTasks();
-}
-
-// שמירה
-function saveProjects() {
-  localStorage.setItem("projects", JSON.stringify(projects));
-}
-
-// משימות
-function renderTasks() {
-  const ul = document.getElementById("taskList");
-  ul.innerHTML = "";
-  const filter = document.getElementById("taskFilter").value;
-  const tasks = projects[currentProjectIndex].tasks.filter(task =>
-    filter === "all" || task.status === filter
-  );
-  tasks.forEach((task, idx) => {
-    const li = document.createElement("li");
-    li.textContent = task.text + " (" + task.status + ")";
-    ul.appendChild(li);
-  });
-}
-
-document.getElementById("addTaskBtn").addEventListener("click", () => {
-  const input = document.getElementById("newTaskInput");
-  const text = input.value.trim();
-  if (!text) return;
-  projects[currentProjectIndex].tasks.push({
-    text,
-    status: "todo",
-    createdAt: new Date().toISOString()
-  });
-  input.value = "";
-  saveProjects();
-  renderTasks();
-});
-
-document.getElementById("taskFilter").addEventListener("change", renderTasks);
