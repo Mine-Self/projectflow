@@ -1,9 +1,11 @@
-// הגדרות Firebase
+// הגדרות Firebase שלך
 const firebaseConfig = {
-  apiKey: "AIzaSyCxRh-EUe3IImNzeVmOTuUvGsZ3fRNa7F0",
-  authDomain: "projectflow-xxxxx.firebaseapp.com", // תוכל לעדכן את הכתובת אם שונה אצלך
-  projectId: "projectflow-xxxxx",
-  appId: "1:1049774217510:web:some-app-id"
+  apiKey: "AIzaSyD3StLOIJr72GJuPWuAUdVf4d_reZojfLc",
+  authDomain: "mine-self-projectflow.firebaseapp.com",
+  projectId: "mine-self-projectflow",
+  storageBucket: "mine-self-projectflow.firebasestorage.app",
+  messagingSenderId: "1049774217510",
+  appId: "1:1049774217510:web:0188fdc0393e4c4cc589e7"
 };
 
 // אתחול Firebase
@@ -12,7 +14,7 @@ firebase.initializeApp(firebaseConfig);
 // הגדרת ספק ההתחברות של Google
 const provider = new firebase.auth.GoogleAuthProvider();
 provider.setCustomParameters({
-  hd: "gmail.com" // מוודא שרק משתמשי Gmail יוכלו להתחבר (לא חובה)
+  hd: "gmail.com" // רק חשבונות Gmail (אפשר גם למחוק את השורה הזאת אם תרצה כל כתובת)
 });
 
 // התחברות בלחיצה
