@@ -17,7 +17,6 @@ provider.setCustomParameters({
   hd: "gmail.com"
 });
 
-// התחברות בלחיצה
 function signInWithGoogle() {
   firebase.auth().signInWithPopup(provider)
     .then((result) => {
@@ -32,7 +31,7 @@ function signInWithGoogle() {
         document.getElementById("app").style.display = "block";
         document.getElementById("userEmail").innerText = user.email;
 
-        // טען את הפרויקטים מהאחסון
+        // טען את הפרויקטים
         projects = JSON.parse(localStorage.getItem("projects") || "[]");
         renderProjects();
       } else {
@@ -46,7 +45,6 @@ function signInWithGoogle() {
     });
 }
 
-// התחברות אוטומטית אם כבר מחובר
 firebase.auth().onAuthStateChanged((user) => {
   const allowedEmails = [
     "alexmu14@gmail.com",
@@ -58,7 +56,6 @@ firebase.auth().onAuthStateChanged((user) => {
     document.getElementById("app").style.display = "block";
     document.getElementById("userEmail").innerText = user.email;
 
-    // טען את הפרויקטים מהאחסון גם ברענון
     projects = JSON.parse(localStorage.getItem("projects") || "[]");
     renderProjects();
   } else {

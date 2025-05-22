@@ -1,85 +1,159 @@
 body {
   font-family: Arial, sans-serif;
+  text-align: right;
   padding: 20px;
-  background: #f9f9f9;
+  background-color: #f3f3f3;
   direction: rtl;
 }
 
-.project-button, .task-button {
-  background-color: #4caf50;
-  border: none;
-  color: white;
-  padding: 5px 10px;
-  margin-right: 10px;
-  cursor: pointer;
+#login, #app {
+  max-width: 600px;
+  margin: auto;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+input, button, select {
+  padding: 8px;
+  margin: 5px 0;
+  font-size: 16px;
   border-radius: 4px;
+  border: 1px solid #ccc;
 }
 
-.project-button:hover, .task-button:hover {
-  background-color: #45a049;
-}
-
-.small-btn {
-  background-color: #555;
+button {
+  cursor: pointer;
+  background-color: #4285F4;
   color: white;
   border: none;
-  margin-right: 5px;
-  padding: 4px 8px;
-  cursor: pointer;
-  border-radius: 3px;
 }
 
-.small-btn:hover {
-  background-color: #333;
+button:hover {
+  background-color: #3367D6;
 }
 
 ul {
-  list-style-type: none;
+  list-style: none;
   padding: 0;
 }
 
 li {
-  margin-bottom: 8px;
+  margin: 5px 0;
+  padding: 8px;
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f9f9f9;
+  border-radius: 5px;
 }
 
-.menu-button {
-  position: fixed;
-  top: 10px;
-  left: 10px;
-  font-size: 24px;
+.project-btn, .task-btn {
+  background: none;
+  border: none;
   cursor: pointer;
-  z-index: 1000;
+  font-size: 16px;
+  text-align: right;
+  flex-grow: 1;
+}
+
+.project-info, .task-info {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  margin-right: 10px;
+  text-align: right;
+}
+
+.status {
+  font-size: 12px;
+  color: #555;
+}
+
+.actions button {
+  background-color: #d9534f;
+  margin-left: 5px;
+  font-size: 14px;
+  padding: 5px 10px;
+}
+
+.actions button:hover {
+  background-color: #c9302c;
 }
 
 .side-menu {
   position: fixed;
   top: 0;
-  left: 0;
-  width: 220px;
+  right: -260px;
+  width: 250px;
   height: 100%;
-  background-color: #222;
+  background-color: #333;
   color: white;
+  transition: right 0.3s ease;
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   box-sizing: border-box;
-  z-index: 999;
+  z-index: 1000;
+}
+
+.side-menu.open {
+  right: 0;
 }
 
 .side-menu-header {
+  font-size: 16px;
   margin-bottom: 30px;
+  word-wrap: break-word;
 }
 
-#logoutButton {
-  background-color: #e53935;
+#signOutBtn {
+  background-color: #d9534f;
   border: none;
   color: white;
-  padding: 10px 15px;
+  padding: 10px;
   cursor: pointer;
-  border-radius: 4px;
-  position: absolute;
-  bottom: 20px;
-  width: calc(100% - 40px);
+  font-size: 16px;
+  border-radius: 5px;
 }
 
-#logoutButton:hover {
-  background-color: #c62828;
+#signOutBtn:hover {
+  background-color: #c9302c;
+}
+
+.menu-btn {
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  font-size: 24px;
+  background: #4285F4;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  z-index: 1100;
+}
+
+.add-project-btn {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.edit-input {
+  width: 100%;
+  padding: 5px;
+  font-size: 16px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.status-select {
+  font-size: 14px;
+  margin-left: 10px;
+  padding: 3px 5px;
+  border-radius: 4px;
 }
