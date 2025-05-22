@@ -1,67 +1,81 @@
 <!DOCTYPE html>
-<html lang="he">
+<html lang="he" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
   <title>ProjectFlow</title>
-  <link rel="stylesheet" href="style.css"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="auth.js" defer></script>
+  <link rel="stylesheet" href="style.css">
+  <script src="main.js" defer></script>
 </head>
 <body>
-  <header>
-    ProjectFlow
-  </header>
+
+  <!-- תפריט צד -->
+  <div id="sideMenu" class="side-menu">
+    <div class="side-menu-header">
+      <strong id="sideMenuEmail"></strong>
+    </div>
+    <div class="side-menu-footer">
+      <button onclick="firebase.auth().signOut()">התנתק</button>
+    </div>
+  </div>
 
   <!-- כפתור תפריט צד -->
-  <button id="menuButton" class="menu-btn">☰ תפריט</button>
-
-  <!-- כפתור הוספת פרויקט -->
-  <button id="showProjectFormBtn" class="add-project-btn">הוסף פרויקט</button>
-
-  <!-- סרגל צד -->
-  <div id="sidebar" class="sidebar">
-    <div>
-      <p>משתמש: <span id="userEmail">alexmu14@gmail.com</span></p>
-    </div>
-    <div>
-      <button id="logoutBtn">התנתק</button>
-    </div>
+  <div class="top-bar">
+    <button id="toggleMenu" class="menu-button">☰</button>
+    <button id="showAddProjectForm" class="add-project-button">+ הוסף פרויקט</button>
   </div>
 
-  <div id="app">
-    <div class="project-list">
-      <div id="projectForm" style="display:none;">
-        <input type="text" id="newProjectName" placeholder="שם פרויקט חדש"/>
-        <button id="saveProjectBtn">שמור</button>
-        <button id="cancelProjectBtn">ביטול</button>
+  <!-- התחברות -->
+  <div id="login">
+    <h2>ProjectFlow</h2>
+    <p>התחבר עם חשבון Google שלך:</p>
+    <button onclick="signInWithGoogle()">התחבר עם Google</button>
+  </div>
+
+  <!-- אפליקציה -->
+  <div id="app" style="display:none;">
+    <div id="projectSection">
+      <div id="projectListContainer">
+        <ul id="projectList"></ul>
       </div>
-      <div id="projectsContainer"></div>
+
+      <div id="addProjectForm" class="form-hidden">
+        <input id="newProjectInput" placeholder="שם פרויקט חדש">
+        <button onclick="saveNewProject()">שמור</button>
+        <button onclick="cancelAddProject()">ביטול</button>
+      </div>
     </div>
 
-    <div class="task-section">
-      <div class="task-filter">
-        סנן לפי סטטוס:
-        <select id="taskFilter">
+    <div id="projectArea" style="display:none;">
+      <h4 id="projectTitle"></h4>
+      
+      <div class="task-controls">
+        <label for="statusFilter">סינון לפי סטטוס:</label>
+        <select id="statusFilter" onchange="renderTasks()">
           <option value="all">הכל</option>
-          <option value="todo">צריך לעשות</option>
-          <option value="inprogress">בתהליך</option>
+          <option value="not_started">לא התחיל</option>
+          <option value="in_progress">בתהליך</option>
           <option value="done">בוצע</option>
         </select>
       </div>
-      <div id="tasksContainer"></div>
-      <div id="taskForm" style="display:none;">
-        <input type="text" id="newTaskName" placeholder="שם משימה חדשה"/>
+
+      <ul id="taskList"></ul>
+
+      <div class="add-task">
+        <input id="newTaskInput" placeholder="משימה חדשה">
         <select id="newTaskStatus">
-          <option value="todo">צריך לעשות</option>
-          <option value="inprogress">בתהליך</option>
+          <option value="not_started">לא התחיל</option>
+          <option value="in_progress">בתהליך</option>
           <option value="done">בוצע</option>
         </select>
-        <button id="saveTaskBtn">שמור</button>
-        <button id="cancelTaskBtn">ביטול</button>
+        <button onclick="addTask()">הוסף משימה</button>
       </div>
     </div>
   </div>
 
-  <script src="auth.js"></script>
-  <script src="main.js"></script>
 </body>
 </html>
