@@ -13,10 +13,13 @@ body {
 
 .project-item {
   margin-bottom: 10px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
 }
 
 .project-btn {
-  width: 100%;
+  flex-grow: 1;
   text-align: right;
   background: #3498db;
   color: white;
@@ -30,6 +33,28 @@ body {
 
 .project-btn:hover {
   background: #2980b9;
+}
+
+.project-edit-btn, .project-delete-btn {
+  background: #e67e22;
+  border: none;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.project-edit-btn:hover {
+  background: #d35400;
+}
+
+.project-delete-btn {
+  background: #c0392b;
+}
+
+.project-delete-btn:hover {
+  background: #922b21;
 }
 
 .task-list {
@@ -58,6 +83,7 @@ body {
 .task-btn select {
   margin-top: 5px;
   padding: 3px;
+  font-size: 14px;
 }
 
 .task-btn button.edit-task-btn {
@@ -79,6 +105,7 @@ body {
   border-radius: 6px;
   font-size: 16px;
   cursor: pointer;
+  margin-bottom: 15px;
 }
 
 .add-project-btn:hover {

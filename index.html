@@ -27,23 +27,25 @@
     <button id="cancelProjectBtn">ביטול</button>
   </div>
 
-  <!-- סינון סטטוס במשימות -->
-  <div id="taskFilter" style="margin: 20px 0; display:none;">
-    <label>סינון משימות:</label>
-    <select id="statusFilterSelect">
-      <option value="all">הכל</option>
-      <option value="todo">לפני ביצוע</option>
-      <option value="done">בוצעו</option>
-    </select>
-  </div>
-
   <!-- רשימת פרויקטים -->
   <ul id="projectList" class="project-list"></ul>
 
   <!-- אזור פרויקט נבחר -->
   <div id="projectArea" style="display:none; margin-top: 30px;">
+
     <h2 id="projectTitle"></h2>
     <p id="projectDate" style="color: gray; font-size: 0.9em;"></p>
+
+    <!-- סינון סטטוס במשימות -->
+    <div id="taskFilter" style="margin-bottom: 15px;">
+      <label for="statusFilterSelect">סינון משימות:</label>
+      <select id="statusFilterSelect">
+        <option value="all">הכל</option>
+        <option value="todo">לפני ביצוע</option>
+        <option value="inprogress">בתהליך</option>
+        <option value="done">בוצע</option>
+      </select>
+    </div>
 
     <input type="text" id="newTaskInput" placeholder="הוסף משימה" />
     <button id="addTaskBtn">הוסף משימה</button>
