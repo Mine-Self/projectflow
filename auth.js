@@ -22,7 +22,7 @@ function signInWithGoogle() {
 firebase.auth().signInWithPopup(provider)
   .then((result) => {
     const user = result.user;
-    const allowedEmails = ["alexmu14@gmail.com", "example2@gmail.com", "example3@gmail.com"];
+    const allowedEmails = ["alexmu14@gmail.com", "mualex1970@gmail.com", "example3@gmail.com"];
     if (allowedEmails.includes(user.email)) {
       document.getElementById("login").style.display = "none";
       document.getElementById("app").style.display = "block";
