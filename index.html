@@ -7,61 +7,58 @@
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
+  <header>
+    ProjectFlow
+  </header>
+
   <!-- כפתור תפריט צד -->
   <button id="menuButton" class="menu-btn">☰ תפריט</button>
 
   <!-- כפתור הוספת פרויקט -->
   <button id="showProjectFormBtn" class="add-project-btn">הוסף פרויקט</button>
 
-  <!-- תפריט צד -->
+  <!-- סרגל צד -->
   <div id="sidebar" class="sidebar">
-    <div class="sidebar-header">
-      מחובר בתור: <span id="userEmail">-</span>
+    <div>
+      <p>משתמש: <span id="userEmail">alexmu14@gmail.com</span></p>
     </div>
-    <div class="sidebar-footer">
-      <button id="logout">התנתק</button>
+    <div>
+      <button id="logoutBtn">התנתק</button>
     </div>
   </div>
 
-  <div class="container" id="app" style="display: none">
-    <h1>ProjectFlow</h1>
-
-    <div id="projectForm" style="display:none;">
-      <input type="text" id="newProjectName" placeholder="שם פרויקט חדש" />
-      <button id="saveProjectBtn">שמור</button>
-      <button id="cancelProjectBtn">ביטול</button>
+  <div id="app">
+    <div class="project-list">
+      <div id="projectForm" style="display:none;">
+        <input type="text" id="newProjectName" placeholder="שם פרויקט חדש"/>
+        <button id="saveProjectBtn">שמור</button>
+        <button id="cancelProjectBtn">ביטול</button>
+      </div>
+      <div id="projectsContainer"></div>
     </div>
 
-    <div id="projectList"></div>
-
-    <div id="taskSection" style="display: none;">
-      <h2>משימות עבור: <span id="currentProjectName"></span></h2>
-
-      <!-- סינון משימות לפי סטטוס -->
-      <select id="statusFilter">
-        <option value="all">הצג הכל</option>
-        <option value="todo">לעשות</option>
-        <option value="in-progress">בתהליך</option>
-        <option value="done">בוצע</option>
-      </select>
-
-      <div id="taskList"></div>
-
-      <div id="taskForm">
-        <input type="text" id="newTaskName" placeholder="שם משימה חדשה" />
-        <select id="newTaskStatus">
-          <option value="todo">לעשות</option>
-          <option value="in-progress">בתהליך</option>
+    <div class="task-section">
+      <div class="task-filter">
+        סנן לפי סטטוס:
+        <select id="taskFilter">
+          <option value="all">הכל</option>
+          <option value="todo">צריך לעשות</option>
+          <option value="inprogress">בתהליך</option>
           <option value="done">בוצע</option>
         </select>
-        <button id="addTaskBtn">הוסף משימה</button>
+      </div>
+      <div id="tasksContainer"></div>
+      <div id="taskForm" style="display:none;">
+        <input type="text" id="newTaskName" placeholder="שם משימה חדשה"/>
+        <select id="newTaskStatus">
+          <option value="todo">צריך לעשות</option>
+          <option value="inprogress">בתהליך</option>
+          <option value="done">בוצע</option>
+        </select>
+        <button id="saveTaskBtn">שמור</button>
+        <button id="cancelTaskBtn">ביטול</button>
       </div>
     </div>
-  </div>
-
-  <div id="login">
-    <h2>התחברות</h2>
-    <button onclick="loginWithGoogle()">התחבר עם Google</button>
   </div>
 
   <script src="auth.js"></script>
