@@ -7,24 +7,40 @@
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-  <script src="auth.js" defer></script>
-  <script src="main.js" defer></script>
   <link rel="stylesheet" href="style.css" />
+  <script src="main.js" defer></script>
 </head>
 <body>
-  <div id="navbar">
-    <button id="menuButton" title="תפריט צד">☰</button>
+  <!-- בר עליון -->
+  <div id="topBar">
+    <button id="menuButton">&#9776;</button> <!-- סמל תפריט צד -->
     <button id="addProjectBtn">+ פרוייקט</button>
   </div>
 
-  <div id="app" style="display:none;">
-    <!-- תוכן האתר כאן -->
+  <!-- תפריט צד -->
+  <div id="sideMenu" class="side-menu-closed">
+    <div id="sideMenuHeader">
+      <span id="userEmail">alexmu14@gmail.com</span>
+    </div>
+    <button id="signOutBtn">התנתק</button>
   </div>
 
-  <div id="login">
-    <h2>ProjectFlow</h2>
-    <p>התחבר עם חשבון Google שלך:</p>
-    <button onclick="signInWithGoogle()">התחבר עם Google</button>
+  <!-- תוכן ראשי -->
+  <div id="content">
+    <div id="addProjectForm" class="hidden">
+      <input type="text" id="newProjectInput" placeholder="שם פרויקט חדש" />
+      <button id="saveProjectBtn">שמור</button>
+      <button id="cancelProjectBtn">ביטול</button>
+    </div>
+
+    <h3>הפרויקטים שלך</h3>
+    <ul id="projectList"></ul>
+
+    <div id="projectArea" style="display:none;">
+      <h4 id="projectTitle"></h4>
+      <ul id="taskList"></ul>
+      <!-- כאן יגיעו המשימות -->
+    </div>
   </div>
 </body>
 </html>
