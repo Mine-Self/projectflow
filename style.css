@@ -1,66 +1,85 @@
 body {
   font-family: Arial, sans-serif;
-  text-align: right;
   padding: 20px;
-  background-color: #f3f3f3;
+  background: #f9f9f9;
   direction: rtl;
 }
 
-#sideMenuToggle {
+.project-button, .task-button {
+  background-color: #4caf50;
+  border: none;
+  color: white;
+  padding: 5px 10px;
+  margin-right: 10px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.project-button:hover, .task-button:hover {
+  background-color: #45a049;
+}
+
+.small-btn {
+  background-color: #555;
+  color: white;
+  border: none;
+  margin-right: 5px;
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.small-btn:hover {
+  background-color: #333;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+li {
+  margin-bottom: 8px;
+}
+
+.menu-button {
   position: fixed;
   top: 10px;
   left: 10px;
   font-size: 24px;
   cursor: pointer;
-  z-index: 1001;
-}
-
-#sideMenu {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 250px;
-  height: 100%;
-  background: #fff;
-  box-shadow: 2px 0 5px rgba(0,0,0,0.3);
-  padding: 20px;
   z-index: 1000;
 }
 
-#sideMenu.hidden {
-  display: none;
+.side-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 220px;
+  height: 100%;
+  background-color: #222;
+  color: white;
+  padding: 20px;
+  box-sizing: border-box;
+  z-index: 999;
 }
 
-button {
-  margin: 5px 0;
-  padding: 8px 12px;
-  font-size: 16px;
+.side-menu-header {
+  margin-bottom: 30px;
+}
+
+#logoutButton {
+  background-color: #e53935;
+  border: none;
+  color: white;
+  padding: 10px 15px;
   cursor: pointer;
+  border-radius: 4px;
+  position: absolute;
+  bottom: 20px;
+  width: calc(100% - 40px);
 }
 
-input, select {
-  padding: 6px;
-  margin: 5px 0;
-}
-
-ul {
-  list-style: none;
-  padding: 0;
-}
-
-li {
-  margin: 5px 0;
-  padding: 5px;
-  border-bottom: 1px solid #ccc;
-}
-
-.hidden {
-  display: none;
-}
-
-.project-header {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 10px;
+#logoutButton:hover {
+  background-color: #c62828;
 }
