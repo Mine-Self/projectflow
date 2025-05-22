@@ -2,13 +2,174 @@
 <html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ניהול פרויקטים</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    /* תוספת מהירה לסטיילינג תפריט צד */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3f3f3;
+      margin: 0;
+      padding: 20px;
+      direction: rtl;
+    }
+    #menuButton {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      font-size: 28px;
+      cursor: pointer;
+      z-index: 1001;
+      background: none;
+      border: none;
+    }
+    #sidebar {
+      position: fixed;
+      top: 0;
+      right: -250px;
+      width: 250px;
+      height: 100%;
+      background: #fff;
+      box-shadow: -3px 0 6px rgba(0,0,0,0.2);
+      padding: 20px;
+      box-sizing: border-box;
+      transition: right 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      z-index: 1000;
+    }
+    #sidebar.open {
+      right: 0;
+    }
+    #sidebar .sidebar-header {
+      font-weight: bold;
+      margin-bottom: 20px;
+      word-break: break-word;
+    }
+    #sidebar button {
+      padding: 10px;
+      width: 100%;
+      font-size: 16px;
+      background-color: #e53e3e;
+      border: none;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #app {
+      max-width: 600px;
+      margin: 60px auto 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    header button {
+      background-color: #2b6cb0;
+      border: none;
+      color: white;
+      font-size: 18px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    #projectForm {
+      margin-bottom: 20px;
+      display: none;
+    }
+    #projectForm input {
+      width: calc(100% - 130px);
+      padding: 8px;
+      font-size: 16px;
+    }
+    #projectForm button {
+      margin-right: 8px;
+      padding: 8px 12px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    #projectForm button.save {
+      background-color: #38a169;
+      color: white;
+      border: none;
+    }
+    #projectForm button.cancel {
+      background-color: #a0aec0;
+      border: none;
+      color: white;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    ul li {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    ul li button.edit-project-name {
+      background: none;
+      border: none;
+      color: #3182ce;
+      font-size: 14px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+    ul li span.project-date {
+      font-size: 12px;
+      color: gray;
+    }
+    #projectArea {
+      margin-top: 30px;
+    }
+    #projectTitle {
+      font-size: 24px;
+      margin-bottom: 5px;
+    }
+    #projectDate {
+      font-size: 12px;
+      color: gray;
+      margin-bottom: 15px;
+    }
+    #taskList li {
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    #taskList li button.edit-task {
+      background: none;
+      border: none;
+      color: #3182ce;
+      cursor: pointer;
+      font-size: 14px;
+      margin-left: 10px;
+    }
+    #taskStatusSelect {
+      font-size: 14px;
+      margin-right: 10px;
+    }
+  </style>
 </head>
 <body>
+  <!-- כפתור תפריט צד -->
+  <button id="menuButton" aria-label="תפריט">☰</button>
+
   <!-- תפריט צד -->
-  <div id="sidebar" class="sidebar hidden">
+  <div id="sidebar" aria-hidden="true">
     <div class="sidebar-header">
       <p id="userEmail">alexmu14@gmail.com</p>
     </div>
@@ -17,43 +178,36 @@
     </div>
   </div>
 
-  <!-- כפתור לפתיחת תפריט צד -->
-  <button id="menuButton" onclick="toggleSidebar()">☰</button>
-
-  <!-- אזור האפליקציה -->
+  <!-- אפליקציה -->
   <div id="app">
     <header>
       <h1>ניהול פרויקטים</h1>
-      <button onclick="showProjectForm()">➕ הוסף פרויקט</button>
+      <button id="showProjectFormBtn">➕ הוסף פרויקט</button>
     </header>
 
     <!-- טופס הוספת פרויקט -->
-    <div id="projectForm" class="hidden">
+    <div id="projectForm">
       <input type="text" id="newProjectInput" placeholder="שם הפרויקט" />
-      <button onclick="addProject()">שמור</button>
-      <button onclick="hideProjectForm()">ביטול</button>
+      <button class="save" onclick="addProject()">שמור</button>
+      <button class="cancel" onclick="hideProjectForm()">ביטול</button>
     </div>
 
     <!-- רשימת פרויקטים -->
-    <section>
-      <h2>רשימת פרויקטים</h2>
-      <ul id="projectList"></ul>
-    </section>
+    <ul id="projectList"></ul>
 
     <!-- אזור משימות לפרויקט נבחר -->
     <section id="projectArea" style="display:none;">
       <h2 id="projectTitle"></h2>
-      <p id="projectDate" style="color:gray;"></p>
+      <p id="projectDate"></p>
 
-      <div id="taskSection">
+      <div>
         <input type="text" id="newTaskInput" placeholder="משימה חדשה" />
         <button onclick="addTask()">הוסף משימה</button>
-        <ul id="taskList"></ul>
       </div>
+      <ul id="taskList"></ul>
     </section>
   </div>
 
-  <!-- סקריפטים -->
   <script src="auth.js"></script>
   <script src="main.js"></script>
 </body>
