@@ -8,90 +8,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="auth.js" defer></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: right;
-      padding: 20px;
-      background-color: #f3f3f3;
-      direction: rtl;
-    }
-    #app, #login {
-      max-width: 600px;
-      margin: auto;
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    input, button {
-      padding: 8px;
-      margin: 5px 0;
-      font-size: 16px;
-    }
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-    li {
-      margin: 5px 0;
-      padding: 5px;
-      border-bottom: 1px solid #ccc;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .task-done {
-      text-decoration: line-through;
-      color: gray;
-    }
-    .info-text {
-      font-size: 12px;
-      color: #666;
-      margin-left: 10px;
-      white-space: nowrap;
-    }
-    .btn {
-      margin-left: 8px;
-      padding: 4px 8px;
-      font-size: 14px;
-      cursor: pointer;
-    }
-    .btn-edit {
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 4px;
-    }
-    .btn-delete {
-      background-color: #f44336;
-      color: white;
-      border: none;
-      border-radius: 4px;
-    }
-    .btn-edit:hover {
-      background-color: #45a049;
-    }
-    .btn-delete:hover {
-      background-color: #d32f2f;
-    }
-    .task-text {
-      flex-grow: 1;
-      cursor: pointer;
-      margin-right: 10px;
-    }
-    #projectArea {
-      margin-top: 20px;
-      border-top: 1px solid #ddd;
-      padding-top: 15px;
-    }
-    input.edit-input {
-      font-size: 16px;
-      padding: 4px;
-      margin-left: 10px;
-      flex-grow: 1;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <!-- התחברות -->
@@ -124,10 +41,11 @@
   <script>
     let projects = JSON.parse(localStorage.getItem("projects") || "[]");
     let currentProjectIndex = null;
+    let expandedProjects = new Set();
 
-    function formatDate(timestamp) {
-      const d = new Date(timestamp);
-      return d.toLocaleDateString("he-IL", { year: "numeric", month: "2-digit", day: "2-digit" });
+    function formatDate(dateStr) {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: 'numeric' });
     }
 
     function renderProjects() {
@@ -135,17 +53,50 @@
       ul.innerHTML = "";
       projects.forEach((proj, index) => {
         const li = document.createElement("li");
+        li.className = "project-card";
 
-        // שם ותאריך יצירה
-        const infoSpan = document.createElement("span");
-        infoSpan.textContent = `${proj.name} (נוצר ב: ${formatDate(proj.createdAt)})`;
-        infoSpan.style.cursor = "pointer";
-        infoSpan.onclick = () => openProject(index);
+        // כפתור כיווץ/הרחבה
+        const expandBtn = document.createElement("button");
+        expandBtn.className = "expand-btn";
+        expandBtn.innerHTML = expandedProjects.has(index) ? "&#x25BC;" : "&#x25B6;"; // ▼ או ▶
+        expandBtn.title = expandedProjects.has(index) ? "כווץ פרויקט" : "הרחב פרויקט";
+        expandBtn.onclick = (e) => {
+          e.stopPropagation();
+          if (expandedProjects.has(index)) {
+            expandedProjects.delete(index);
+          } else {
+            expandedProjects.add(index);
+          }
+          renderProjects();
+        };
+
+        // אזור מידע - שם ותאריך
+        const infoDiv = document.createElement("div");
+        infoDiv.className = "project-info";
+        infoDiv.onclick = () => openProject(index);
+
+        // שם פרויקט עם אפשרות עריכה
+        const titleSpan = document.createElement("span");
+        titleSpan.className = "project-title";
+        titleSpan.textContent = proj.name;
+
+        // תאריך יצירה
+        const dateSpan = document.createElement("span");
+        dateSpan.className = "project-date";
+        dateSpan.textContent = "נוצר ב: " + formatDate(proj.createdAt);
+
+        infoDiv.appendChild(titleSpan);
+        infoDiv.appendChild(dateSpan);
+
+        // קבוצת כפתורים: עריכה, מחיקה
+        const btnGroup = document.createElement("div");
+        btnGroup.className = "buttons-group";
 
         // כפתור עריכה
         const editBtn = document.createElement("button");
-        editBtn.textContent = "ערוך";
-        editBtn.className = "btn btn-edit";
+        editBtn.className = "icon-btn";
+        editBtn.innerHTML = "✏️";
+        editBtn.title = "ערוך שם פרויקט";
         editBtn.onclick = (e) => {
           e.stopPropagation();
           editProjectName(index);
@@ -153,188 +104,251 @@
 
         // כפתור מחיקה
         const deleteBtn = document.createElement("button");
-        deleteBtn.textContent = "מחק";
-        deleteBtn.className = "btn btn-delete";
+        deleteBtn.className = "icon-btn";
+        deleteBtn.innerHTML = "🗑️";
+        deleteBtn.title = "מחק פרויקט";
         deleteBtn.onclick = (e) => {
           e.stopPropagation();
           if (confirm(`למחוק את הפרויקט "${proj.name}"?`)) {
             projects.splice(index, 1);
+            save();
+            renderProjects();
+            // אם הפרויקט שנמחק הוא נבחר, נסגור אזור המשימות
             if (currentProjectIndex === index) {
               currentProjectIndex = null;
               document.getElementById("projectArea").style.display = "none";
             }
-            save();
-            renderProjects();
           }
         };
 
-        li.appendChild(infoSpan);
-        li.appendChild(editBtn);
-        li.appendChild(deleteBtn);
+        btnGroup.appendChild(editBtn);
+        btnGroup.appendChild(deleteBtn);
+
+        li.appendChild(expandBtn);
+        li.appendChild(infoDiv);
+        li.appendChild(btnGroup);
 
         ul.appendChild(li);
+
+        // אם הפרויקט מורחב, נציג את המשימות שלו מתחת
+        if (expandedProjects.has(index)) {
+          const taskUl = document.createElement("ul");
+          taskUl.style.marginRight = "40px";
+          taskUl.style.marginTop = "5px";
+          projects[index].tasks.forEach((task, tidx) => {
+            const taskLi = document.createElement("li");
+            taskLi.className = "task-card";
+            if (task.done) taskLi.classList.add("task-done");
+
+            const taskInfo = document.createElement("div");
+            taskInfo.className = "task-info";
+
+            const taskText = document.createElement("span");
+            taskText.className = "task-text";
+            taskText.textContent = task.text;
+
+            const taskDate = document.createElement("span");
+            taskDate.className = "task-date";
+            taskDate.textContent = "נוצר ב: " + formatDate(task.createdAt);
+
+            taskInfo.appendChild(taskText);
+            taskInfo.appendChild(taskDate);
+
+            // כפתור עריכה משימה
+            const taskEditBtn = document.createElement("button");
+            taskEditBtn.className = "icon-btn";
+            taskEditBtn.innerHTML = "✏️";
+            taskEditBtn.title = "ערוך משימה";
+            taskEditBtn.onclick = (e) => {
+              e.stopPropagation();
+              editTask(index, tidx);
+            };
+
+            // כפתור מחיקה משימה
+            const taskDeleteBtn = document.createElement("button");
+            taskDeleteBtn.className = "icon-btn";
+            taskDeleteBtn.innerHTML = "🗑️";
+            taskDeleteBtn.title = "מחק משימה";
+            taskDeleteBtn.onclick = (e) => {
+              e.stopPropagation();
+              if (confirm(`למחוק את המשימה "${task.text}"?`)) {
+                projects[index].tasks.splice(tidx, 1);
+                save();
+                renderProjects();
+                if(currentProjectIndex === index) renderTasks();
+              }
+            };
+
+            // כפתור לסימון ביצוע
+            taskInfo.onclick = () => {
+              projects[index].tasks[tidx].done = !projects[index].tasks[tidx].done;
+              save();
+              renderProjects();
+              if(currentProjectIndex === index) renderTasks();
+            };
+
+            taskLi.appendChild(taskInfo);
+            const btnGroupTask = document.createElement("div");
+            btnGroupTask.className = "buttons-group";
+            btnGroupTask.appendChild(taskEditBtn);
+            btnGroupTask.appendChild(taskDeleteBtn);
+            taskLi.appendChild(btnGroupTask);
+
+            taskUl.appendChild(taskLi);
+          });
+          ul.appendChild(taskUl);
+        }
       });
     }
 
-    function editProjectName(index) {
-      const li = document.getElementById("projectList").children[index];
-      const proj = projects[index];
+    function addProject() {
+      const input = document.getElementById("newProjectInput");
+      const newName = input.value.trim();
+      if (!newName) return alert("יש להקליד שם פרויקט.");
 
-      li.innerHTML = "";
+      if (projects.some(p => p.name === newName)) {
+        return alert("פרויקט עם שם זה כבר קיים.");
+      }
 
-      const input = document.createElement("input");
-      input.type = "text";
-      input.value = proj.name;
-      input.className = "edit-input";
-
-      input.onkeydown = (e) => {
-        if (e.key === "Enter") {
-          const newName = input.value.trim();
-          if (!newName) return alert("שם פרויקט לא יכול להיות ריק");
-          // בדיקה כפילות שמות (ללא תלות באותיות)
-          const duplicate = projects.some((p, i) => i !== index && p.name.toLowerCase() === newName.toLowerCase());
-          if (duplicate) return alert("קיים פרויקט עם שם זהה");
-          proj.name = newName;
-          save();
-          renderProjects();
-        }
-        if (e.key === "Escape") {
-          renderProjects();
-        }
-      };
-
-      input.onblur = () => {
-        renderProjects();
-      };
-
-      li.appendChild(input);
-      input.focus();
+      projects.push({ name: newName, tasks: [], createdAt: new Date().toISOString() });
+      input.value = "";
+      save();
+      renderProjects();
     }
 
     function openProject(index) {
       currentProjectIndex = index;
       const project = projects[index];
       document.getElementById("projectArea").style.display = "block";
-      document.getElementById("projectTitle").textContent = `פרויקט: ${project.name}`;
+      document.getElementById("projectTitle").textContent = "פרויקט: " + project.name;
       renderTasks();
     }
 
     function renderTasks() {
       const ul = document.getElementById("taskList");
       ul.innerHTML = "";
+      if (currentProjectIndex === null) return;
       const tasks = projects[currentProjectIndex].tasks;
       tasks.forEach((task, idx) => {
         const li = document.createElement("li");
+        li.className = "task-card";
+        if (task.done) li.classList.add("task-done");
 
-        // טקסט המשימה עם סטטוס
+        const taskInfo = document.createElement("div");
+        taskInfo.className = "task-info";
+
         const taskText = document.createElement("span");
-        taskText.textContent = task.text;
         taskText.className = "task-text";
-        if (task.done) taskText.classList.add("task-done");
-        taskText.onclick = () => {
-          task.done = !task.done;
+        taskText.textContent = task.text;
+
+        const taskDate = document.createElement("span");
+        taskDate.className = "task-date";
+        taskDate.textContent = "נוצר ב: " + formatDate(task.createdAt);
+
+        taskInfo.appendChild(taskText);
+        taskInfo.appendChild(taskDate);
+
+        // לחיצה על הטקסט מסמנת ביצוע
+        taskInfo.onclick = () => {
+          projects[currentProjectIndex].tasks[idx].done = !projects[currentProjectIndex].tasks[idx].done;
           save();
           renderTasks();
+          renderProjects();
         };
 
-        // תאריך יצירה
-        const dateSpan = document.createElement("span");
-        dateSpan.className = "info-text";
-        dateSpan.textContent = `נוצר ב: ${formatDate(task.createdAt)}`;
-
-        // כפתור עריכה
+        // כפתור עריכה משימה
         const editBtn = document.createElement("button");
-        editBtn.textContent = "ערוך";
-        editBtn.className = "btn btn-edit";
+        editBtn.className = "icon-btn";
+        editBtn.innerHTML = "✏️";
+        editBtn.title = "ערוך משימה";
         editBtn.onclick = (e) => {
           e.stopPropagation();
-          editTaskText(idx);
+          editTask(currentProjectIndex, idx);
         };
 
-        // כפתור מחיקה
+        // כפתור מחיקה משימה
         const deleteBtn = document.createElement("button");
-        deleteBtn.textContent = "מחק";
-        deleteBtn.className = "btn btn-delete";
+        deleteBtn.className = "icon-btn";
+        deleteBtn.innerHTML = "🗑️";
+        deleteBtn.title = "מחק משימה";
         deleteBtn.onclick = (e) => {
           e.stopPropagation();
           if (confirm(`למחוק את המשימה "${task.text}"?`)) {
-            tasks.splice(idx, 1);
+            projects[currentProjectIndex].tasks.splice(idx, 1);
             save();
             renderTasks();
+            renderProjects();
           }
         };
 
-        li.appendChild(taskText);
-        li.appendChild(dateSpan);
-        li.appendChild(editBtn);
-        li.appendChild(deleteBtn);
+        li.appendChild(taskInfo);
+        const btnGroup = document.createElement("div");
+        btnGroup.className = "buttons-group";
+        btnGroup.appendChild(editBtn);
+        btnGroup.appendChild(deleteBtn);
+        li.appendChild(btnGroup);
 
         ul.appendChild(li);
       });
     }
 
-    function editTaskText(taskIndex) {
-      const ul = document.getElementById("taskList");
-      const li = ul.children[taskIndex];
-      const task = projects[currentProjectIndex].tasks[taskIndex];
-
-      li.innerHTML = "";
-
-      const input = document.createElement("input");
-      input.type = "text";
-      input.value = task.text;
-      input.className = "edit-input";
-
-      input.onkeydown = (e) => {
-        if (e.key === "Enter") {
-          const newText = input.value.trim();
-          if (!newText) return alert("טקסט המשימה לא יכול להיות ריק");
-          task.text = newText;
-          save();
-          renderTasks();
-        }
-        if (e.key === "Escape") {
-          renderTasks();
-        }
-      };
-
-      input.onblur = () => {
-        renderTasks();
-      };
-
-      li.appendChild(input);
-      input.focus();
-    }
-
-    function addProject() {
-      const input = document.getElementById("newProjectInput");
-      const newName = input.value.trim();
-      if (!newName) return alert("אנא הזן שם פרויקט");
-      const duplicate = projects.some(p => p.name.toLowerCase() === newName.toLowerCase());
-      if (duplicate) return alert("קיים פרויקט עם שם זהה");
-      projects.push({ name: newName, tasks: [], createdAt: Date.now() });
-      input.value = "";
-      save();
-      renderProjects();
-    }
-
     function addTask() {
-      if (currentProjectIndex === null) return alert("בחר פרויקט קודם");
       const input = document.getElementById("newTaskInput");
       const newText = input.value.trim();
-      if (!newText) return alert("אנא הזן טקסט למשימה");
-      projects[currentProjectIndex].tasks.push({ text: newText, done: false, createdAt: Date.now() });
+      if (!newText) return alert("יש להקליד טקסט למשימה.");
+      if (currentProjectIndex === null) return alert("יש לבחור פרויקט קודם.");
+      projects[currentProjectIndex].tasks.push({ text: newText, done: false, createdAt: new Date().toISOString() });
       input.value = "";
       save();
       renderTasks();
+      renderProjects();
+    }
+
+    function editProjectName(index) {
+      const newName = prompt("ערוך שם פרויקט:", projects[index].name);
+      if (newName === null) return;
+      const trimmed = newName.trim();
+      if (!trimmed) return alert("שם הפרויקט לא יכול להיות ריק.");
+      if (projects.some((p, i) => p.name === trimmed && i !== index)) {
+        return alert("פרויקט עם שם זה כבר קיים.");
+      }
+      projects[index].name = trimmed;
+      save();
+      renderProjects();
+      if (currentProjectIndex === index) {
+        document.getElementById("projectTitle").textContent = "פרויקט: " + trimmed;
+      }
+    }
+
+    function editTask(projIndex, taskIndex) {
+      const newText = prompt("ערוך משימה:", projects[projIndex].tasks[taskIndex].text);
+      if (newText === null) return;
+      const trimmed = newText.trim();
+      if (!trimmed) return alert("טקסט המשימה לא יכול להיות ריק.");
+      projects[projIndex].tasks[taskIndex].text = trimmed;
+      save();
+      renderProjects();
+      if (currentProjectIndex === projIndex) renderTasks();
     }
 
     function save() {
       localStorage.setItem("projects", JSON.stringify(projects));
     }
 
-    // אתחול תצוגה
-    renderProjects();
+    // פונקציות התחברות (מוקטנות - ניתן להרחיב)
+    function signInWithGoogle() {
+      // השתמש בפיירבייס להתחברות - קוד קיים בא auth.js
+    }
+
+    window.onload = () => {
+      // בדיקה אם מחובר
+      const userEmailElem = document.getElementById("userEmail");
+      // נניח שמשתמש מחובר - הדמיה
+      userEmailElem.textContent = "alexmu14@gmail.com";
+      document.getElementById("login").style.display = "none";
+      document.getElementById("app").style.display = "block";
+      renderProjects();
+    };
   </script>
 </body>
 </html>

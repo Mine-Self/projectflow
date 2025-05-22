@@ -1,20 +1,131 @@
 body {
   font-family: Arial, sans-serif;
-  text-align: center;
-  padding: 40px;
-  background-color: #f3f3f3;
+  padding: 20px;
+  background-color: #f9fafb;
+  color: #333;
+  direction: rtl;
+  margin: 0;
 }
 
-#login-button {
-  padding: 10px 20px;
-  font-size: 16px;
-  background-color: #4285F4;
-  color: white;
-  border: none;
-  border-radius: 4px;
+#login, #app {
+  max-width: 700px;
+  margin: 20px auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 25px 30px;
+}
+
+button {
   cursor: pointer;
+  padding: 10px 16px;
+  font-size: 16px;
+  border: none;
+  border-radius: 6px;
+  background-color: #1a73e8;
+  color: white;
+  transition: background-color 0.3s ease;
 }
 
-#login-button:hover {
-  background-color: #3367D6;
+button:hover {
+  background-color: #155ab6;
+}
+
+input {
+  padding: 10px 12px;
+  font-size: 16px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  margin: 10px 0;
+  width: calc(100% - 26px);
+  box-sizing: border-box;
+}
+
+.project-card, .task-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 14px 20px;
+  margin: 10px 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background-color 0.25s ease;
+}
+
+.project-card:hover, .task-card:hover {
+  background-color: #f0f4ff;
+}
+
+.project-info, .task-info {
+  flex-grow: 1;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+}
+
+.project-title, .task-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #222;
+}
+
+.project-date, .task-date {
+  font-size: 12px;
+  color: #888;
+  margin-top: 4px;
+}
+
+.buttons-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  color: #666;
+  transition: color 0.25s ease;
+}
+
+.icon-btn:hover {
+  color: #1a73e8;
+}
+
+.task-done .task-text {
+  text-decoration: line-through;
+  color: gray;
+}
+
+.expand-btn {
+  font-size: 20px;
+  margin-left: 12px;
+  user-select: none;
+  cursor: pointer;
+  color: #555;
+  transition: color 0.3s ease;
+}
+
+.expand-btn:hover {
+  color: #1a73e8;
+}
+
+/* עיצוב רספונסיבי */
+@media (max-width: 600px) {
+  body {
+    padding: 15px;
+  }
+  #login, #app {
+    padding: 20px;
+  }
+  .project-title, .task-text {
+    font-size: 16px;
+  }
+  button {
+    font-size: 14px;
+    padding: 8px 14px;
+  }
 }
