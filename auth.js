@@ -1,36 +1,48 @@
+// הגדרות Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyD7X1VpObdCG1XzU",
-  authDomain: "projectflow-12345.firebaseapp.com",
-  projectId: "projectflow-12345",
-  appId: "1:1049774217510:web:example",
+  apiKey: "AIzaSyCxRh-EUe3IImNzeVmOTuUvGsZ3fRNa7F0",
+  authDomain: "projectflow-xxxxx.firebaseapp.com", // תוכל לעדכן את הכתובת אם שונה אצלך
+  projectId: "projectflow-xxxxx",
+  appId: "1:1049774217510:web:some-app-id"
 };
 
 // אתחול Firebase
 firebase.initializeApp(firebaseConfig);
 
-const allowedEmail = "alexmu14@gmail.com";
+// הגדרת ספק ההתחברות של Google
+const provider = new firebase.auth.GoogleAuthProvider();
+provider.setCustomParameters({
+  hd: "gmail.com" // מוודא שרק משתמשי Gmail יוכלו להתחבר (לא חובה)
+});
 
-document.getElementById("login-button").addEventListener("click", () => {
-  const provider = new firebase.auth.GoogleAuthProvider();
+// התחברות בלחיצה
+function signInWithGoogle() {
   firebase.auth().signInWithPopup(provider)
     .then((result) => {
       const user = result.user;
-      if (user.email === allowedEmail) {
-        document.getElementById("login-section").style.display = "none";
-        document.getElementById("main-app").style.display = "block";
+      if (user.email === "alexmu14@gmail.com") {
+        document.getElementById("login").style.display = "none";
+        document.getElementById("app").style.display = "block";
+        document.getElementById("userEmail").innerText = user.email;
       } else {
-        alert("רק אלכס יכול להיכנס. אתה לא מורשה.");
+        alert("אין לך הרשאה לגשת למערכת הזו.");
         firebase.auth().signOut();
       }
     })
     .catch((error) => {
-      console.error("Login error:", error);
+      console.error("שגיאה בהתחברות:", error);
       alert("שגיאה בהתחברות");
     });
-});
-
-function logout() {
-  firebase.auth().signOut().then(() => {
-    location.reload();
-  });
 }
+
+// התחברות אוטומטית אם כבר מחובר
+firebase.auth().onAuthStateChanged((user) => {
+  if (user && user.email === "alexmu14@gmail.com") {
+    document.getElementById("login").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    document.getElementById("userEmail").innerText = user.email;
+  } else {
+    document.getElementById("login").style.display = "block";
+    document.getElementById("app").style.display = "none";
+  }
+});
