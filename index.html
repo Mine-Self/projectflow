@@ -1,50 +1,139 @@
 <!DOCTYPE html>
-<html lang="he">
+<html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8">
   <title>ProjectFlow</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- Firebase SDK -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-  <!-- קובץ ההתחברות שלך -->
   <script src="auth.js" defer></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 40px;
+      text-align: right;
+      padding: 20px;
       background-color: #f3f3f3;
+      direction: rtl;
     }
-
-    button {
-      padding: 10px 20px;
+    #app, #login {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    input, button {
+      padding: 8px;
+      margin: 5px 0;
       font-size: 16px;
-      background-color: #4285F4;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
     }
-
-    button:hover {
-      background-color: #3367D6;
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      margin: 5px 0;
+      padding: 5px;
+      border-bottom: 1px solid #ccc;
+    }
+    .task-done {
+      text-decoration: line-through;
+      color: gray;
     }
   </style>
 </head>
 <body>
-  <!-- אזור התחברות -->
+  <!-- התחברות -->
   <div id="login">
     <h2>ProjectFlow</h2>
-    <p>אנא התחבר עם חשבון Google שלך:</p>
+    <p>התחבר עם חשבון Google שלך:</p>
     <button onclick="signInWithGoogle()">התחבר עם Google</button>
   </div>
 
-  <!-- אזור האפליקציה עצמה (מופיע רק אחרי התחברות) -->
+  <!-- אפליקציה -->
   <div id="app" style="display:none;">
-    <h2>ברוך הבא!</h2>
-    <p>התחברת עם המשתמש: <span id="userEmail"></span></p>
+    <h2>ברוך הבא, <span id="userEmail"></span></h2>
     <button onclick="firebase.auth().signOut()">התנתק</button>
+
+    <hr>
+    <h3>הפרויקטים שלך</h3>
+    <ul id="projectList"></ul>
+
+    <input id="newProjectInput" placeholder="שם פרויקט חדש">
+    <button onclick="addProject()">הוסף פרויקט</button>
+
+    <div id="projectArea" style="display:none;">
+      <h4 id="projectTitle"></h4>
+      <ul id="taskList"></ul>
+      <input id="newTaskInput" placeholder="משימה חדשה">
+      <button onclick="addTask()">הוסף משימה</button>
+    </div>
   </div>
+
+  <script>
+    let projects = JSON.parse(localStorage.getItem("projects") || "[]");
+    let currentProjectIndex = null;
+
+    function renderProjects() {
+      const ul = document.getElementById("projectList");
+      ul.innerHTML = "";
+      projects.forEach((proj, index) => {
+        const li = document.createElement("li");
+        li.textContent = proj.name;
+        li.style.cursor = "pointer";
+        li.onclick = () => openProject(index);
+        ul.appendChild(li);
+      });
+    }
+
+    function addProject() {
+      const input = document.getElementById("newProjectInput");
+      if (!input.value.trim()) return;
+      projects.push({ name: input.value.trim(), tasks: [] });
+      input.value = "";
+      save();
+      renderProjects();
+    }
+
+    function openProject(index) {
+      currentProjectIndex = index;
+      const project = projects[index];
+      document.getElementById("projectArea").style.display = "block";
+      document.getElementById("projectTitle").textContent = "פרויקט: " + project.name;
+      renderTasks();
+    }
+
+    function renderTasks() {
+      const ul = document.getElementById("taskList");
+      ul.innerHTML = "";
+      const tasks = projects[currentProjectIndex].tasks;
+      tasks.forEach((task, idx) => {
+        const li = document.createElement("li");
+        li.textContent = task.text;
+        if (task.done) li.classList.add("task-done");
+        li.onclick = () => {
+          task.done = !task.done;
+          save();
+          renderTasks();
+        };
+        ul.appendChild(li);
+      });
+    }
+
+    function addTask() {
+      const input = document.getElementById("newTaskInput");
+      if (!input.value.trim()) return;
+      projects[currentProjectIndex].tasks.push({ text: input.value.trim(), done: false });
+      input.value = "";
+      save();
+      renderTasks();
+    }
+
+    function save() {
+      localStorage.setItem("projects", JSON.stringify(projects));
+    }
+  </script>
 </body>
 </html>
