@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>ProjectFlow</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -15,16 +15,17 @@
       padding: 20px;
       background-color: #f3f3f3;
       direction: rtl;
-    }
-    #app, #login {
       max-width: 600px;
       margin: auto;
+    }
+    #app, #login {
       background: white;
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
     }
-    input, button {
+    input, button, select {
       padding: 8px;
       margin: 5px 0;
       font-size: 16px;
@@ -32,15 +33,58 @@
     ul {
       list-style: none;
       padding: 0;
+      max-height: 300px;
+      overflow-y: auto;
     }
     li {
       margin: 5px 0;
-      padding: 5px;
+      padding: 10px;
       border-bottom: 1px solid #ccc;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: 5px;
+      transition: background-color 0.2s;
+    }
+    li:hover {
+      background-color: #e0e0e0;
     }
     .task-done {
       text-decoration: line-through;
       color: gray;
+    }
+    .status {
+      padding: 3px 7px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+      color: white;
+    }
+    .status-not-started {
+      background-color: #999;
+    }
+    .status-in-progress {
+      background-color: #007bff;
+    }
+    .status-completed {
+      background-color: #28a745;
+    }
+    @media (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+      input, button, select {
+        width: 100%;
+        box-sizing: border-box;
+      }
+      li {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .status {
+        margin-top: 5px;
+      }
     }
   </style>
 </head>
@@ -57,17 +101,32 @@
     <h2>ברוך הבא, <span id="userEmail"></span></h2>
     <button onclick="firebase.auth().signOut()">התנתק</button>
 
-    <hr>
+    <hr />
     <h3>הפרויקטים שלך</h3>
     <ul id="projectList"></ul>
 
-    <input id="newProjectInput" placeholder="שם פרויקט חדש">
+    <input id="newProjectInput" placeholder="שם פרויקט חדש" />
     <button onclick="addProject()">הוסף פרויקט</button>
 
-    <div id="projectArea" style="display:none;">
+    <div id="projectArea" style="display:none; margin-top:20px;">
       <h4 id="projectTitle"></h4>
+
+      <label for="filterStatus">סינון משימות:</label>
+      <select id="filterStatus" onchange="renderTasks()">
+        <option value="all">הכל</option>
+        <option value="not-started">לא התחיל</option>
+        <option value="in-progress">בעבודה</option>
+        <option value="completed">הושלם</option>
+      </select>
+
       <ul id="taskList"></ul>
-      <input id="newTaskInput" placeholder="משימה חדשה">
+
+      <input id="newTaskInput" placeholder="משימה חדשה" />
+      <select id="newTaskStatus">
+        <option value="not-started">לא התחיל</option>
+        <option value="in-progress">בעבודה</option>
+        <option value="completed">הושלם</option>
+      </select>
       <button onclick="addTask()">הוסף משימה</button>
     </div>
   </div>
@@ -106,34 +165,99 @@
     }
 
     function renderTasks() {
+      if (currentProjectIndex === null) return;
       const ul = document.getElementById("taskList");
       ul.innerHTML = "";
       const tasks = projects[currentProjectIndex].tasks;
+
+      const filter = document.getElementById("filterStatus").value;
+
       tasks.forEach((task, idx) => {
+        // סינון
+        if (
+          filter === "not-started" && task.status !== "not-started" ||
+          filter === "in-progress" && task.status !== "in-progress" ||
+          filter === "completed" && task.status !== "completed"
+        ) {
+          return; // דילוג
+        }
+
         const li = document.createElement("li");
-        li.textContent = task.text;
-        if (task.done) li.classList.add("task-done");
+
+        const taskText = document.createElement("span");
+        taskText.textContent = task.text;
+        if (task.status === "completed") {
+          taskText.classList.add("task-done");
+        }
+        li.appendChild(taskText);
+
+        // סטטוס - תווית צבעונית
+        const statusSpan = document.createElement("span");
+        statusSpan.textContent = statusText(task.status);
+        statusSpan.className = "status " + statusClass(task.status);
+        li.appendChild(statusSpan);
+
+        // שינוי סטטוס בלחיצה על המשימה
         li.onclick = () => {
-          task.done = !task.done;
+          cycleStatus(idx);
           save();
           renderTasks();
         };
+
         ul.appendChild(li);
       });
     }
 
     function addTask() {
       const input = document.getElementById("newTaskInput");
+      const statusSelect = document.getElementById("newTaskStatus");
       if (!input.value.trim()) return;
-      projects[currentProjectIndex].tasks.push({ text: input.value.trim(), done: false });
+      projects[currentProjectIndex].tasks.push({
+        text: input.value.trim(),
+        status: statusSelect.value,
+      });
       input.value = "";
+      statusSelect.value = "not-started";
       save();
       renderTasks();
+    }
+
+    function cycleStatus(taskIndex) {
+      const task = projects[currentProjectIndex].tasks[taskIndex];
+      switch (task.status) {
+        case "not-started":
+          task.status = "in-progress";
+          break;
+        case "in-progress":
+          task.status = "completed";
+          break;
+        case "completed":
+          task.status = "not-started";
+          break;
+      }
+    }
+
+    function statusText(status) {
+      switch (status) {
+        case "not-started": return "לא התחיל";
+        case "in-progress": return "בעבודה";
+        case "completed": return "הושלם";
+      }
+    }
+
+    function statusClass(status) {
+      switch (status) {
+        case "not-started": return "status-not-started";
+        case "in-progress": return "status-in-progress";
+        case "completed": return "status-completed";
+      }
     }
 
     function save() {
       localStorage.setItem("projects", JSON.stringify(projects));
     }
+
+    renderProjects();
   </script>
 </body>
 </html>
