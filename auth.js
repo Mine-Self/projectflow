@@ -32,9 +32,9 @@ function signInWithGoogle() {
         document.getElementById("app").style.display = "block";
         document.getElementById("userEmail").innerText = user.email;
 
-        // טען את הפרויקטים אחרי התחברות
+        // טען את הפרויקטים מהאחסון
+        projects = JSON.parse(localStorage.getItem("projects") || "[]");
         renderProjects();
-
       } else {
         alert("אין לך הרשאה לגשת למערכת הזו.");
         firebase.auth().signOut();
@@ -58,9 +58,9 @@ firebase.auth().onAuthStateChanged((user) => {
     document.getElementById("app").style.display = "block";
     document.getElementById("userEmail").innerText = user.email;
 
-    // טען את הפרויקטים אם המשתמש כבר מחובר
+    // טען את הפרויקטים מהאחסון גם ברענון
+    projects = JSON.parse(localStorage.getItem("projects") || "[]");
     renderProjects();
-
   } else {
     document.getElementById("login").style.display = "block";
     document.getElementById("app").style.display = "none";
