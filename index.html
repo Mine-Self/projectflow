@@ -11,12 +11,13 @@
   <script src="main.js" defer></script>
 </head>
 <body>
-  <div id="sideMenuToggle">☰</div>
-
   <!-- תפריט צד -->
-  <div id="sideMenu" class="hidden">
-    <div id="sideMenuHeader"></div>
-    <button onclick="firebase.auth().signOut()">התנתק</button>
+  <button id="menuButton" class="menu-button">☰</button>
+  <div id="sideMenu" class="side-menu">
+    <div class="side-menu-header">
+      <p id="userEmail"></p>
+    </div>
+    <button id="logoutButton">התנתק</button>
   </div>
 
   <div id="login">
@@ -26,32 +27,31 @@
   </div>
 
   <div id="app" style="display:none;">
-    <div class="project-header">
-      <button id="addProjectBtn">➕ הוסף פרויקט</button>
-    </div>
+    <h2>הפרויקטים שלך</h2>
 
-    <div id="projectInputArea" class="hidden">
+    <!-- כפתור הוסף פרויקט -->
+    <button id="showAddProjectBtn">הוסף פרויקט</button>
+
+    <!-- תיבת הטקסט וכפתורי שמור וביטול נסתרים בהתחלה -->
+    <div id="addProjectArea" style="display:none; margin-top: 10px;">
       <input id="newProjectInput" placeholder="שם פרויקט חדש" />
-      <button onclick="saveNewProject()">שמור</button>
-      <button onclick="cancelNewProject()">ביטול</button>
+      <button id="saveProjectBtn">שמור</button>
+      <button id="cancelProjectBtn">ביטול</button>
     </div>
 
-    <h3>הפרויקטים שלך</h3>
     <ul id="projectList"></ul>
 
     <div id="projectArea" style="display:none;">
-      <h4 id="projectTitle"></h4>
-
-      <div>
-        <label for="taskFilter">סנן לפי סטטוס:</label>
-        <select id="taskFilter" onchange="renderTasks()">
+      <h3 id="projectTitle"></h3>
+      <div id="filterTasksArea">
+        <label for="taskFilter">סנן משימות:</label>
+        <select id="taskFilter">
           <option value="all">הכל</option>
-          <option value="todo">לעשות</option>
-          <option value="inprogress">בתהליך</option>
+          <option value="todo">לתכנון</option>
+          <option value="inprogress">בעבודה</option>
           <option value="done">בוצע</option>
         </select>
       </div>
-
       <ul id="taskList"></ul>
       <input id="newTaskInput" placeholder="משימה חדשה" />
       <button onclick="addTask()">הוסף משימה</button>
