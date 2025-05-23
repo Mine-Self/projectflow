@@ -3,191 +3,402 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ניהול משימות</title>
+    <title>ניהול פרויקטים ומשימות</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet" />
     <style>
-        body {
-            font-family: 'Assistant', 'Inter', sans-serif;
+        body { 
+            font-family: 'Assistant', 'Inter', sans-serif; 
+            background-color: #f3f4f6; /* gray-100 */
+            color: #1f2937; /* gray-800 */
         }
-        .modal, .login-modal {
-            display: none; /* Hidden by default */
-            position: fixed; 
-            z-index: 100; 
-            left: 0;
-            top: 0;
-            width: 100%; 
-            height: 100%; 
-            overflow: auto; 
-            background-color: rgba(0,0,0,0.4); 
-            padding-top: 60px;
+        .card { background-color: #ffffff; border: 1px solid #d1d5db; /* gray-300 */ }
+        .modal, .login-modal, .tasks-display-modal { 
+            display: none; position: fixed; z-index: 100; 
+            left: 0; top: 0; width: 100%; height: 100%; 
+            overflow: auto; background-color: rgba(0,0,0,0.6); 
+            padding-top: 20px;
         }
-        .modal-content, .login-modal-content {
-            background-color: #fefefe;
-            margin: 5% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            max-width: 500px;
-            border-radius: 8px;
-            position: relative;
+        .modal-content, .login-modal-content, .tasks-modal-content { 
+            background-color: #fefefe; margin: 2% auto; padding: 20px; 
+            border: 1px solid #d1d5db; /* gray-300 */
+            width: 90%; 
+            border-radius: 8px; position: relative;
+            color: #1f2937; /* gray-800 */
         }
         .login-modal { display: flex; align-items: center; justify-content: center; padding-top: 0;}
-        .login-modal-content { margin: auto; }
+        .login-modal-content { margin: auto; max-width: 500px; }
+        .modal-content { max-width: 700px; } 
+        .tasks-modal-content { 
+            max-width: 950px; 
+            max-height: 90vh; 
+            display: flex;
+            flex-direction: column;
+        }
+        .tasks-modal-body {
+            overflow-y: auto; 
+            flex-grow: 1;
+        }
 
-        .close-button {
-            color: #aaa;
-            position: absolute;
-            left: 15px; /* Adjusted for RTL, close button on the left */
-            top: 10px;
-            font-size: 28px;
-            font-weight: bold;
+        .close-button { 
+             color: #aaa; position: absolute; left: 15px; top: 10px; 
+             font-size: 28px; font-weight: bold; cursor: pointer; 
         }
-        .close-button:hover,
-        .close-button:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
-        }
-        .rtl-form-input, .rtl-select {
-            text-align: right;
-        }
-        .rtl-table th, .rtl-table td {
-            text-align: right;
-            padding-right: 0.75rem; 
-            padding-left: 0.75rem; 
-        }
-        .rtl-table th:first-child, .rtl-table td:first-child { padding-right: 1.5rem; }
-        .rtl-table th:last-child, .rtl-table td:last-child { padding-left: 1.5rem; }
+        .close-button:hover, .close-button:focus { color: black; text-decoration: none; }
         
-        .status-new { background-color: #E0E7FF; color: #3730A3; }
-        .status-in-progress { background-color: #FEF3C7; color: #92400E; }
-        .status-completed { background-color: #D1FAE5; color: #065F46; }
-        .status-pending { background-color: #FEF9C3; color: #854D0E; } /* Yellow-100, Yellow-700 */
-        .status-cancelled { background-color: #FEE2E2; color: #991B1B; } /* Red-100, Red-700 */
-
-        /* FullCalendar RTL adjustments */
-        .fc-header-toolbar {
-            direction: rtl; /* Ensure header is RTL */
+        .rtl-form-input, .rtl-select, .rtl-textarea { text-align: right; }
+        
+        .rtl-table th, .rtl-table td { 
+            text-align: right; 
+            padding: 0.4rem 0.5rem; 
+            white-space: normal; 
+            vertical-align: top; 
+            min-height: 40px; 
         }
-        .fc-toolbar-chunk:first-child { order: 3; } /* Moves title to the right */
-        .fc-toolbar-chunk:nth-child(2) { order: 2; } /* Keeps center buttons in center */
-        .fc-toolbar-chunk:last-child { order: 1; } /* Moves prev/next/today to the left */
-        .fc-event-main { direction: rtl; text-align: right;}
+        .rtl-table th.project-name-col, .rtl-table td.project-name-col { min-width: 120px; max-width: 200px; cursor:pointer; } 
+        .rtl-table th.description-col, .rtl-table td.description-col,
+        .rtl-table th.notes-col, .rtl-table td.notes-col,
+        .rtl-table th.task-update-notes-col, .rtl-table td.task-update-notes-col { 
+            min-width: 150px; max-width: 250px; cursor: pointer; 
+            white-space: pre-wrap; 
+            word-break: break-word; 
+        }
+        .rtl-table th.task-date-col, .rtl-table td.task-date-col { min-width: 100px; cursor: pointer; }
+        .rtl-table th.task-status-col, .rtl-table td.task-status-col { min-width: 100px; cursor: pointer; }
+        .rtl-table th.project-status-col, .rtl-table td.project-status-col { min-width: 100px; cursor: pointer; }
 
-        #appContainer { display: none; } /* Hidden until authenticated */
+
+        .rtl-table th.actions-col, .rtl-table td.actions-col { min-width: 35px; }
+        .rtl-table th.task-id-col, .rtl-table td.task-id-col { min-width: 20px; max-width:30px; padding-right: 0.1rem; padding-left: 0.1rem; text-align: center;}
+
+
+        .rtl-table th:first-child, .rtl-table td:first-child { padding-right: 0.75rem; }
+        .rtl-table th:last-child, .rtl-table td:last-child { padding-left: 0.75rem; }
+        
+        .status-badge { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; text-transform: capitalize;}
+        .status-new { background-color: #E0E7FF; color: #3730A3; } 
+        .status-in-progress { background-color: #FEF3C7; color: #92400E; } 
+        .status-completed { background-color: #D1FAE5; color: #065F46; } 
+        .status-pending { background-color: #FEF9C3; color: #854D0E; } 
+        .status-cancelled { background-color: #FEE2E2; color: #991B1B; } 
+        .status-default { background-color: #E5E7EB; color: #374151; } 
+
+
+        .fc-header-toolbar { direction: rtl; }
+        .fc-toolbar-chunk:first-child { order: 3; } .fc-toolbar-chunk:nth-child(2) { order: 2; } .fc-toolbar-chunk:last-child { order: 1; } 
+        .fc-event-main { direction: rtl; text-align: right;}
+        #appContainer, #clientsView, #calendarView { display: none; } /* Initially hide all views except login */
+        .project-row.selected { background-color: #E0E7FF !important; } 
+        .tab-button { padding: 0.5rem 1rem; border-radius: 0.375rem 0.375rem 0 0; background-color: #E5E7EB; border: 1px solid #D1D5DB; border-bottom: none; cursor: pointer; color: #4b5563; }
+        .tab-button.active { background-color: #ffffff; border-bottom-color: #ffffff; color: #1f2937; font-weight: 600; }
+
+        .actions-cell-content { display: flex; flex-direction: column; align-items: center; }
+        .table-action-button {
+            font-bold; padding: 0.05rem 0.1rem; border-radius: 0.25rem; font-size: 0.6rem; 
+            margin-bottom: 0.05rem; transition-duration: 150ms; width: auto; 
+            display: inline-flex; align-items: center; justify-content: center;
+        }
+        .table-action-button:last-child { margin-bottom: 0; }
+
+        .icon-button {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 2.5rem; height: 2.5rem; border-radius: 9999px; 
+            font-size: 1.25rem; font-weight: 600; color: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: background-color 0.15s ease-in-out, transform 0.1s ease-in-out;
+        }
+        .icon-button:hover { transform: translateY(-1px); }
+        .icon-button:active { transform: translateY(0px); }
+        .add-project-btn, .add-client-btn { background-color: #10B981; } 
+        .add-project-btn:hover, .add-client-btn:hover { background-color: #059669; }
+        .add-task-btn { background-color: #4F46E5; } .add-task-btn:hover { background-color: #4338CA; }
+        
+        .close-tasks-modal-icon-btn { 
+            background-color: #6B7280; 
+            color: white; width: 2rem; height: 2rem; font-size: 1rem; 
+            border-radius: 9999px; display: inline-flex;
+            align-items: center; justify-content: center; cursor: pointer;
+            transition: background-color 0.15s ease-in-out;
+        }
+        .close-tasks-modal-icon-btn:hover { background-color: #4B5563; }
+        
+        .filters-container { padding: 0.75rem; background-color: #f9fafb; border-radius: 0.5rem; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); margin-bottom: 1rem; }
+        .filter-group { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0rem; flex-grow: 1; min-width: 150px; }
+        .filter-group label { white-space: nowrap; flex-shrink: 0; font-size: 0.875rem; margin-left: 0.25rem; color: #4b5563; }
+        .status-checkbox-group { display: flex; flex-wrap: wrap; gap: 0.5rem 0.75rem; align-items: center; }
+        .status-checkbox-item { display: flex; align-items: center; }
+        .status-checkbox-item input[type="checkbox"] { margin-left: 0.1rem; accent-color: #4F46E5; width:0.875rem; height:0.875rem; }
+        .status-checkbox-item label { font-size: 0.8rem; color: #1f2937; }
+        .filter-item-input { height: 2rem; padding: 0.25rem 0.5rem; font-size: 0.875rem; width: 100%; background-color: #ffffff; border-color: #d1d5db; color: #1f2937;} 
+        .filter-item-select { height: 2rem; padding-left: 0.5rem; padding-right: 1.75rem; font-size: 0.7rem; width: 100%; background-color: #ffffff; border-color: #d1d5db; color: #1f2937;}
+
+
+        .inline-edit-input { width: 100%; box-sizing: border-box; padding: 0.25rem; border: 1px solid #4F46E5; border-radius: 0.25rem; font-size: 0.875rem; background-color: #ffffff; color: #1f2937;}
+        .inline-edit-textarea { width: 100%; box-sizing: border-box; padding: 0.25rem; border: 1px solid #4F46E5; border-radius: 0.25rem; font-size: 0.875rem; min-height: 50px; resize: vertical; background-color: #ffffff; color: #1f2937;}
+
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800">
-
+<body class=""> 
     <div id="loginModal" class="login-modal" style="display: flex;">
-        <div class="login-modal-content">
-            <h2 class="text-2xl font-semibold text-indigo-600 mb-4 text-center">כניסה למערכת</h2>
-            <p class="text-sm text-gray-600 mb-4 text-center">זוהי מערכת הדגמה עם אימות בסיסי בצד הלקוח בלבד.</p>
+        <div class="login-modal-content card">
+            <h2 class="text-2xl font-semibold mb-4 text-center text-indigo-600">כניסה למערכת</h2>
             <form id="loginForm">
                 <div class="mb-4">
-                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">כתובת מייל:</label>
-                    <input type="email" id="email" name="email" class="rtl-form-input mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+                    <label for="email" class="block text-sm font-medium text-gray-600 mb-1">כתובת מייל:</label>
+                    <input type="email" id="email" name="email" class="rtl-form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" required>
                 </div>
                 <p id="loginError" class="text-red-500 text-sm mb-4" style="display: none;">כתובת מייל לא מורשית.</p>
-                <button type="submit" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-150 ease-in-out">התחבר</button>
+                <button type="submit" class="w-full font-semibold py-2 px-4 rounded-lg shadow-md transition duration-150 ease-in-out bg-indigo-600 hover:bg-indigo-700 text-white">התחבר</button>
             </form>
         </div>
     </div>
 
     <div id="appContainer" class="container mx-auto p-4 sm:p-6 lg:p-8">
-        <header class="mb-8 text-center">
-            <h1 class="text-3xl sm:text-4xl font-bold text-indigo-600">מערכת ניהול משימות</h1>
-            <p class="text-sm text-gray-500">משתמש מחובר: <span id="loggedInUserEmail"></span> <button id="logoutButton" class="text-indigo-500 hover:underline text-xs">(התנתק)</button></p>
+        <header class="mb-6 text-center">
+            <h1 class="text-3xl sm:text-4xl font-bold text-indigo-600">ניהול פרויקטים ומשימות</h1>
+            <div class="flex justify-center items-center mt-2 space-x-4 space-x-reverse text-gray-600">
+                <p>משתמש מחובר: <span id="loggedInUserEmail"></span></p>
+                <button id="logoutButton" class="text-indigo-600 hover:text-indigo-700 hover:underline text-xs">(התנתק)</button>
+            </div>
         </header>
 
-        <div class="mb-6 text-left">
-            <button id="openModalButton" class="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-150 ease-in-out">
-                הוסף משימה חדשה
-            </button>
+        <div class="mb-4 flex border-b border-gray-300">
+            <button id="projectsTabButton" class="tab-button active">פרויקטים</button>
+            <button id="clientsTabButton" class="tab-button">לקוחות</button>
+            <button id="calendarTabButton" class="tab-button">לוח שנה</button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 p-4 bg-white rounded-lg shadow">
-            <div>
-                <label for="filterProject" class="block text-sm font-medium text-gray-700">סנן לפי פרויקט:</label>
-                <input type="text" id="filterProject" class="rtl-form-input mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+        <div id="projectsView">
+            <div class="filters-container mb-6 card">
+                 <h3 class="text-lg font-semibold text-gray-700 mb-3">סינון ומיון פרויקטים:</h3>
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+                    <div class="filter-group">
+                        <label for="filterProjectText" class="text-sm font-medium text-gray-600">חיפוש בפרויקטים:</label>
+                        <input type="text" id="filterProjectText" class="rtl-form-input filter-item-input flex-grow px-3 py-1 border rounded-md shadow-sm border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterProjectType" class="text-sm font-medium text-gray-600">סוג פרויקט:</label>
+                        <select id="filterProjectType" class="rtl-select filter-item-select flex-grow px-3 py-1 border rounded-md shadow-sm border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="">הכל</option>
+                        </select>
+                    </div>
+                     <div class="filter-group">
+                        <label class="text-sm font-medium text-gray-600">סטטוס פרויקט:</label>
+                        <div id="filterProjectStatusCheckboxes" class="status-checkbox-group">
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label for="sortProjectsBy" class="text-sm font-medium text-gray-600">מיין פרויקטים לפי:</label>
+                        <select id="sortProjectsBy" class="rtl-select filter-item-select flex-grow px-3 py-1 border rounded-md shadow-sm border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="name">שם פרויקט</option>
+                            <option value="projectType">סוג פרויקט</option>
+                            <option value="clientName">לקוח</option>
+                            <option value="startDate">ת. פתיחה</option>
+                            <option value="endDate">ת. יעד סיום</option>
+                            <option value="status">סטטוס</option>
+                        </select>
+                    </div>
+                </div>
             </div>
-            <div>
-                <label for="filterAssignee" class="block text-sm font-medium text-gray-700">סנן לפי אחראי:</label>
-                <input type="text" id="filterAssignee" class="rtl-form-input mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-            </div>
-            <div>
-                <label for="filterStatus" class="block text-sm font-medium text-gray-700">סנן לפי סטטוס:</label>
-                <select id="filterStatus" class="rtl-select mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                    <option value="">הכל</option>
-                    <option value="חדש">חדש</option>
-                    <option value="בתהליך">בתהליך</option>
-                    <option value="הושלם">הושלם</option>
-                    <option value="בהמתנה">בהמתנה</option>
-                    <option value="בוטל">בוטל</option>
-                </select>
-            </div>
-            <div>
-                <label for="sortBy" class="block text-sm font-medium text-gray-700">מיין לפי:</label>
-                <select id="sortBy" class="rtl-select mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                    <option value="id">ברירת מחדל (ID)</option>
-                    <option value="name">שם משימה</option>
-                    <option value="dueDate">תאריך יעד</option>
-                    <option value="status">סטטוס</option>
-                </select>
+
+            <div class="card overflow-x-auto mb-8">
+                <div class="flex justify-between items-center p-4 border-b border-gray-300">
+                    <h2 id="projectsListTitle" class="text-2xl font-semibold text-gray-700">רשימת פרויקטים</h2>
+                    <button id="openProjectModalButton" class="icon-button add-project-btn" title="הוסף פרויקט חדש">
+                        +
+                    </button>
+                </div>
+                <table class="min-w-full leading-normal rtl-table">
+                    <thead>
+                        <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                            <th class="py-3 px-6 project-name-col">שם פרויקט</th>
+                            <th class="py-3 px-6">סוג</th>
+                            <th class="py-3 px-6">לקוח</th>
+                            <th class="py-3 px-6">מכשור</th>
+                            <th class="py-3 px-6">אביזרים</th>
+                            <th class="py-3 px-6 description-col">תיאור מוצר/שירות</th>
+                            <th class="py-3 px-6">ת. פתיחה</th>
+                            <th class="py-3 px-6">ת. יעד סיום</th>
+                            <th class="py-3 px-6 notes-col">הערות</th>
+                            <th class="py-3 px-6 project-status-col">סטטוס</th>
+                            <th class="py-3 px-6 actions-col">פעולות</th>
+                        </tr>
+                    </thead>
+                    <tbody id="projectsTableBody" class="text-gray-700 text-sm"></tbody>
+                </table>
             </div>
         </div>
 
-        <div class="bg-white shadow-xl rounded-lg overflow-x-auto mb-8">
-            <table class="min-w-full leading-normal rtl-table">
-                <thead>
-                    <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                        <th class="py-3 px-6">שם המשימה</th>
-                        <th class="py-3 px-6">פרויקט</th>
-                        <th class="py-3 px-6">אחראי</th>
-                        <th class="py-3 px-6">תאריך יעד</th>
-                        <th class="py-3 px-6">סטטוס</th>
-                        <th class="py-3 px-6">פעולות</th>
-                    </tr>
-                </thead>
-                <tbody id="tasksTableBody" class="text-gray-700 text-sm">
-                    </tbody>
-            </table>
+        <div id="clientsView" class="hidden">
+            <div class="mb-4 text-left">
+                <button id="openClientModalButton" class="icon-button add-client-btn" title="הוסף לקוח חדש">
+                    +
+                </button>
+            </div>
+            <div class="card overflow-x-auto">
+                <h2 id="clientsListTitle" class="text-2xl font-semibold text-gray-700 p-4 border-b border-gray-300">רשימת לקוחות</h2>
+                <table class="min-w-full leading-normal rtl-table">
+                    <thead>
+                        <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                            <th class="py-3 px-6">שם לקוח/חברה</th>
+                            <th class="py-3 px-6">איש קשר</th>
+                            <th class="py-3 px-6">טלפון</th>
+                            <th class="py-3 px-6">מייל</th>
+                            <th class="py-3 px-6">עיר</th>
+                            <th class="py-3 px-6">הערות</th>
+                            <th class="py-3 px-6 actions-col">פעולות</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clientsTableBody" class="text-gray-700 text-sm"></tbody>
+                </table>
+            </div>
         </div>
-        <p class="mt-4 text-sm text-gray-500 text-center">סה"כ משימות (לאחר סינון): <span id="taskCount">0</span></p>
-        
-        <div class="mt-10 bg-white shadow-xl rounded-lg p-4">
-            <h2 class="text-2xl font-semibold text-indigo-600 mb-4 text-center">לוח שנה</h2>
-            <div id="calendar"></div>
+
+
+        <div id="calendarView" class="hidden">
+            <div class="card p-4">
+                <h2 class="text-2xl font-semibold text-indigo-600 mb-4 text-center">לוח שנה - משימות</h2>
+                <div id="calendar"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tasksDisplayModal" class="tasks-display-modal">
+        <div class="tasks-modal-content card">
+            <div class="flex justify-between items-center pb-3 border-b mb-4 border-gray-300">
+                <h2 id="tasksForProjectTitle" class="text-2xl font-semibold text-gray-700">משימות עבור פרויקט: <span id="taskCountInTitle" class="text-lg text-gray-500"></span></h2>
+                <div class="flex items-center space-x-3 space-x-reverse"> 
+                     <button id="openTaskModalButton" class="icon-button add-task-btn" title="הוסף משימה לפרויקט">
+                        +
+                    </button>
+                    <button id="closeTasksDisplayModalButton" class="close-tasks-modal-icon-btn" title="סגור חלון משימות">&times;</button>
+                </div>
+            </div>
+            <div class="tasks-modal-body">
+                <div class="task-filters-container filters-container">
+                    <div class="flex flex-wrap items-center gap-x-4 gap-y-2"> 
+                        <div class="filter-group">
+                            <label for="filterTaskText" class="text-sm font-medium text-gray-600">חיפוש במשימות:</label>
+                            <input type="text" id="filterTaskText" class="rtl-form-input filter-item-input flex-grow px-3 py-1 border rounded-md shadow-sm border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                        <div class="filter-group">
+                            <label class="text-sm font-medium text-gray-600">סטטוס:</label>
+                            <div id="filterTaskStatusCheckboxes" class="status-checkbox-group">
+                                </div>
+                        </div>
+                         <div class="filter-group">
+                            <label for="sortTasksBy" class="text-sm font-medium text-gray-600">מיין לפי:</label>
+                            <select id="sortTasksBy" class="rtl-select filter-item-select flex-grow px-3 py-1 border rounded-md shadow-sm border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="taskNumber">#</option>
+                                <option value="dueDate">תאריך</option>
+                                <option value="status">סטטוס</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="card overflow-x-auto">
+                    <table class="min-w-full leading-normal rtl-table">
+                        <thead>
+                            <tr class="bg-gray-100 text-gray-600 uppercase text-xs leading-normal">
+                                <th class="py-3 px-6 task-id-col">#</th>
+                                <th class="py-3 px-6 description-col">תיאור</th>
+                                <th class="py-3 px-6 task-update-notes-col">עדכון</th>
+                                <th class="py-3 px-6 task-date-col">תאריך יעד/סיום</th>
+                                <th class="py-3 px-6 task-status-col">סטטוס</th>
+                                <th class="py-3 px-6 actions-col">פעולות</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tasksTableBody" class="text-gray-700 text-sm"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="projectModal" class="modal">
+        <div class="modal-content card">
+            <span id="closeProjectModal" class="close-button">&times;</span>
+            <h2 id="projectModalTitle" class="text-2xl font-semibold text-indigo-600 mb-6">הוסף פרויקט חדש</h2>
+            <form id="projectForm" class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                <input type="hidden" id="projectId">
+                <div class="md:col-span-2">
+                    <label for="projectName" class="block text-sm font-medium text-gray-600 mb-1">שם הפרויקט:</label>
+                    <input type="text" id="projectName" class="rtl-form-input mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" required>
+                </div>
+                <div>
+                    <label for="projectType" class="block text-sm font-medium text-gray-600 mb-1">סוג הפרויקט:</label>
+                    <select id="projectType" class="rtl-select mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"></select>
+                </div>
+                <div>
+                    <label for="projectClientName" class="block text-sm font-medium text-gray-600 mb-1">שם לקוח:</label>
+                    <input type="text" id="projectClientName" class="rtl-form-input mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label for="projectDevices" class="block text-sm font-medium text-gray-600 mb-1">מכשור:</label>
+                    <input type="text" id="projectDevices" class="rtl-form-input mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label for="projectAccessories" class="block text-sm font-medium text-gray-600 mb-1">אביזרים:</label>
+                    <input type="text" id="projectAccessories" class="rtl-form-input mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+                <div class="md:col-span-2">
+                    <label for="projectProductDescription" class="block text-sm font-medium text-gray-600 mb-1">תיאור מוצר/שירות:</label>
+                    <textarea id="projectProductDescription" rows="2" class="rtl-textarea mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                </div>
+                <div>
+                    <label for="projectStartDate" class="block text-sm font-medium text-gray-600 mb-1">תאריך פתיחה:</label>
+                    <input type="date" id="projectStartDate" class="rtl-form-input mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label for="projectEndDate" class="block text-sm font-medium text-gray-600 mb-1">תאריך יעד לסיום:</label>
+                    <input type="date" id="projectEndDate" class="rtl-form-input mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label for="projectStatus" class="block text-sm font-medium text-gray-600 mb-1">סטטוס פרויקט:</label>
+                    <select id="projectStatus" class="rtl-select mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="חדש">חדש</option>
+                        <option value="בתהליך">בתהליך</option>
+                        <option value="בהמתנה">בהמתנה</option>
+                        <option value="הסתיים">הסתיים</option>
+                        <option value="בוטל">בוטל</option>
+                    </select>
+                </div>
+                <div class="md:col-span-2">
+                    <label for="projectNotes" class="block text-sm font-medium text-gray-600 mb-1">הערות לפרויקט:</label>
+                    <textarea id="projectNotes" rows="3" class="rtl-textarea mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                </div>
+                <div class="md:col-span-2 flex items-center justify-end pt-4 border-t mt-4 border-gray-300">
+                    <button type="button" id="cancelProjectButton" class="font-semibold py-2 px-4 rounded-lg ml-2 bg-gray-200 hover:bg-gray-300 text-gray-800">ביטול</button>
+                    <button type="submit" class="font-semibold py-2 px-4 rounded-lg shadow-md bg-green-500 hover:bg-green-600 text-white">שמור פרויקט</button>
+                </div>
+            </form>
         </div>
     </div>
 
     <div id="taskModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button cursor-pointer">&times;</span>
-            <h2 id="modalTitle" class="text-2xl font-semibold text-indigo-600 mb-4">הוסף משימה חדשה</h2>
+        <div class="modal-content !max-w-lg card">
+            <span id="closeTaskModal" class="close-button">&times;</span>
+            <h2 id="taskModalTitle" class="text-2xl font-semibold text-indigo-600 mb-4">הוסף משימה חדשה</h2>
             <form id="taskForm">
                 <input type="hidden" id="taskId">
+                <input type="hidden" id="taskProjectId"> 
                 <div class="mb-4">
-                    <label for="taskName" class="block text-sm font-medium text-gray-700 mb-1">שם המשימה:</label>
-                    <input type="text" id="taskName" name="taskName" class="rtl-form-input mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+                    <label for="taskDescriptionModal" class="block text-sm font-medium text-gray-600 mb-1">תיאור המשימה (חובה):</label>
+                    <textarea id="taskDescriptionModal" name="taskDescriptionModal" rows="3" class="rtl-textarea mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" required></textarea>
                 </div>
                 <div class="mb-4">
-                    <label for="taskProject" class="block text-sm font-medium text-gray-700 mb-1">פרויקט:</label>
-                    <input type="text" id="taskProject" name="taskProject" class="rtl-form-input mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <label for="taskUpdateNotesModal" class="block text-sm font-medium text-gray-600 mb-1">עדכון (אופציונלי):</label>
+                    <textarea id="taskUpdateNotesModal" name="taskUpdateNotesModal" rows="2" class="rtl-textarea mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"></textarea>
                 </div>
                 <div class="mb-4">
-                    <label for="taskAssignee" class="block text-sm font-medium text-gray-700 mb-1">אחראי:</label>
-                    <input type="text" id="taskAssignee" name="taskAssignee" class="rtl-form-input mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <label for="taskDueDateModal" class="block text-sm font-medium text-gray-600 mb-1">תאריך יעד:</label>
+                    <input type="date" id="taskDueDateModal" name="taskDueDateModal" class="rtl-form-input mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
                 </div>
                 <div class="mb-4">
-                    <label for="taskDueDate" class="block text-sm font-medium text-gray-700 mb-1">תאריך יעד:</label>
-                    <input type="date" id="taskDueDate" name="taskDueDate" class="rtl-form-input mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                </div>
-                <div class="mb-4">
-                    <label for="taskStatus" class="block text-sm font-medium text-gray-700 mb-1">סטטוס:</label>
-                    <select id="taskStatus" name="taskStatus" class="rtl-select mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <label for="taskStatusModal" class="block text-sm font-medium text-gray-600 mb-1">סטטוס משימה:</label>
+                    <select id="taskStatusModal" name="taskStatusModal" class="rtl-select mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
                         <option value="חדש">חדש</option>
                         <option value="בתהליך">בתהליך</option>
                         <option value="הושלם">הושלם</option>
@@ -195,50 +406,131 @@
                         <option value="בוטל">בוטל</option>
                     </select>
                 </div>
-                <div class="mb-6">
-                    <label for="taskDescription" class="block text-sm font-medium text-gray-700 mb-1">תיאור (אופציונלי):</label>
-                    <textarea id="taskDescription" name="taskDescription" rows="3" class="rtl-form-input mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
-                </div>
-                <div class="flex items-center justify-end pt-4 border-t">
-                    <button type="button" id="cancelButton" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg ml-2 transition duration-150 ease-in-out">ביטול</button>
-                    <button type="submit" class="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-150 ease-in-out">שמור משימה</button>
+                <div class="flex items-center justify-end pt-4 border-t border-gray-300">
+                    <button type="button" id="cancelTaskButton" class="font-semibold py-2 px-4 rounded-lg ml-2 bg-gray-200 hover:bg-gray-300 text-gray-800">ביטול</button>
+                    <button type="submit" class="font-semibold py-2 px-4 rounded-lg shadow-md bg-indigo-600 hover:bg-indigo-700 text-white">שמור משימה</button>
                 </div>
             </form>
         </div>
     </div>
 
+    <div id="clientModal" class="modal">
+        <div class="modal-content card">
+            <span id="closeClientModal" class="close-button">&times;</span>
+            <h2 id="clientModalTitle" class="text-2xl font-semibold text-indigo-600 mb-6">הוסף לקוח חדש</h2>
+            <form id="clientForm" class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                <input type="hidden" id="clientId">
+                <div class="md:col-span-2">
+                    <label for="clientNameModal" class="block text-sm font-medium text-gray-600 mb-1">שם לקוח/חברה (חובה):</label>
+                    <input type="text" id="clientNameModal" class="rtl-form-input mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" required>
+                </div>
+                <div>
+                    <label for="clientContactPersonModal" class="block text-sm font-medium text-gray-600 mb-1">איש קשר ראשי:</label>
+                    <input type="text" id="clientContactPersonModal" class="rtl-form-input mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label for="clientPhoneModal" class="block text-sm font-medium text-gray-600 mb-1">טלפון:</label>
+                    <input type="tel" id="clientPhoneModal" class="rtl-form-input mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label for="clientEmailModal" class="block text-sm font-medium text-gray-600 mb-1">מייל:</label>
+                    <input type="email" id="clientEmailModal" class="rtl-form-input mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label for="clientCityModal" class="block text-sm font-medium text-gray-600 mb-1">עיר:</label>
+                    <input type="text" id="clientCityModal" class="rtl-form-input mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+                <div class="md:col-span-2">
+                    <label for="clientNotesModal" class="block text-sm font-medium text-gray-600 mb-1">הערות:</label>
+                    <textarea id="clientNotesModal" rows="3" class="rtl-textarea mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                </div>
+                <div class="md:col-span-2 flex items-center justify-end pt-4 border-t mt-4 border-gray-300">
+                    <button type="button" id="cancelClientButton" class="font-semibold py-2 px-4 rounded-lg ml-2 bg-gray-200 hover:bg-gray-300 text-gray-800">ביטול</button>
+                    <button type="submit" class="font-semibold py-2 px-4 rounded-lg shadow-md bg-indigo-600 hover:bg-indigo-700 text-white">שמור לקוח</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/he.js"></script>
 
     <script>
+        // DOM Elements
         const appContainer = document.getElementById('appContainer');
         const loginModal = document.getElementById('loginModal');
         const loginForm = document.getElementById('loginForm');
         const loginError = document.getElementById('loginError');
         const loggedInUserEmailSpan = document.getElementById('loggedInUserEmail');
         const logoutButton = document.getElementById('logoutButton');
+        
+        const projectsTabButton = document.getElementById('projectsTabButton');
+        const clientsTabButton = document.getElementById('clientsTabButton');
+        const calendarTabButton = document.getElementById('calendarTabButton');
+        const projectsView = document.getElementById('projectsView');
+        const clientsView = document.getElementById('clientsView');
+        const calendarView = document.getElementById('calendarView');
 
+        const openProjectModalButton = document.getElementById('openProjectModalButton');
+        const projectsTableBody = document.getElementById('projectsTableBody');
+        const projectsListTitle = document.getElementById('projectsListTitle'); 
+        const projectModal = document.getElementById('projectModal');
+        const projectForm = document.getElementById('projectForm');
+        const projectModalTitle = document.getElementById('projectModalTitle');
+        const closeProjectModalButton = document.getElementById('closeProjectModal');
+        const cancelProjectButton = document.getElementById('cancelProjectButton');
+        const projectIdInput = document.getElementById('projectId');
+        
+        const filterProjectTextInput = document.getElementById('filterProjectText');
+        const filterProjectTypeSelect = document.getElementById('filterProjectType');
+        const filterProjectStatusCheckboxesContainer = document.getElementById('filterProjectStatusCheckboxes');
+        const sortProjectsBySelect = document.getElementById('sortProjectsBy');
+
+        const openClientModalButton = document.getElementById('openClientModalButton');
+        const clientsTableBody = document.getElementById('clientsTableBody');
+        const clientsListTitle = document.getElementById('clientsListTitle');
+        const clientModal = document.getElementById('clientModal');
+        const clientForm = document.getElementById('clientForm');
+        const clientModalTitle = document.getElementById('clientModalTitle');
+        const closeClientModalButton = document.getElementById('closeClientModal');
+        const cancelClientButton = document.getElementById('cancelClientButton');
+        const clientIdInput = document.getElementById('clientId');
+
+
+        const tasksDisplayModal = document.getElementById('tasksDisplayModal'); 
+        const tasksForProjectTitle = document.getElementById('tasksForProjectTitle');
+        const taskCountInTitleSpan = document.getElementById('taskCountInTitle'); 
+        const closeTasksDisplayModalButton = document.getElementById('closeTasksDisplayModalButton'); 
+        const openTaskModalButton = document.getElementById('openTaskModalButton'); 
         const tasksTableBody = document.getElementById('tasksTableBody');
+        const taskModal = document.getElementById('taskModal'); 
         const taskForm = document.getElementById('taskForm');
-        const taskModal = document.getElementById('taskModal');
-        const openModalButton = document.getElementById('openModalButton');
-        const closeButton = taskModal.querySelector('.close-button');
-        const cancelButton = document.getElementById('cancelButton');
-        const modalTitle = document.getElementById('modalTitle');
+        const taskModalTitle = document.getElementById('taskModalTitle');
+        const closeTaskModalButton = document.getElementById('closeTaskModal');
+        const cancelTaskButton = document.getElementById('cancelTaskButton');
         const taskIdInput = document.getElementById('taskId');
-        const taskCountSpan = document.getElementById('taskCount');
+        const taskProjectIdInput = document.getElementById('taskProjectId'); 
+        
 
-        const filterProjectInput = document.getElementById('filterProject');
-        const filterAssigneeInput = document.getElementById('filterAssignee');
-        const filterStatusSelect = document.getElementById('filterStatus');
-        const sortBySelect = document.getElementById('sortBy');
+        const filterTaskTextInput = document.getElementById('filterTaskText'); 
+        const filterTaskStatusCheckboxesContainer = document.getElementById('filterTaskStatusCheckboxes');
+        const sortTasksBySelect = document.getElementById('sortTasksBy');
 
+
+        // Data
+        let projects = [];
         let tasks = [];
+        let clients = []; // New data array for clients
         let calendar;
+        let selectedProjectId = null;
         const ALLOWED_EMAILS = ['mualex1970@gmail.com', 'alexmu14@gmail.com'];
+        const PROJECT_TYPES = ['אבלואציה', 'מכרז', 'דוגמא', 'אחר', 'לרדוף אחרי לקוח', 'תעודות', 'הצעת מחיר', 'תקלה', 'הזמנה', 'פתיחת מק"ט', 'הדרכות'];
+        const TASK_STATUSES = ['חדש', 'בתהליך', 'הושלם', 'בהמתנה', 'בוטל'];
+        const PROJECT_STATUSES = ['חדש', 'בתהליך', 'בהמתנה', 'הסתיים', 'בוטל'];
 
         // --- Authentication ---
-        function checkLogin() {
+        function checkLogin() { 
             const loggedInUser = sessionStorage.getItem('loggedInUser');
             if (loggedInUser && ALLOWED_EMAILS.includes(loggedInUser)) {
                 loginModal.style.display = 'none';
@@ -250,8 +542,7 @@
                 appContainer.style.display = 'none';
             }
         }
-
-        loginForm.addEventListener('submit', (e) => {
+        loginForm.addEventListener('submit', (e) => { 
             e.preventDefault();
             const email = document.getElementById('email').value.trim().toLowerCase();
             if (ALLOWED_EMAILS.includes(email)) {
@@ -262,281 +553,916 @@
                 loginError.style.display = 'block';
             }
         });
-
-        logoutButton.addEventListener('click', () => {
+        logoutButton.addEventListener('click', () => { 
             sessionStorage.removeItem('loggedInUser');
-            tasks = []; // Clear tasks for security, or keep them if preferred
+            projects = []; tasks = []; clients = []; selectedProjectId = null;
             if(calendar) calendar.removeAllEvents();
             checkLogin();
         });
 
+        // --- Tabs ---
+        projectsTabButton.addEventListener('click', () => switchTab('projects'));
+        clientsTabButton.addEventListener('click', () => switchTab('clients'));
+        calendarTabButton.addEventListener('click', () => switchTab('calendar'));
+
+        function switchTab(tabName) {
+            projectsView.style.display = 'none';
+            clientsView.style.display = 'none';
+            calendarView.style.display = 'none';
+            projectsTabButton.classList.remove('active');
+            clientsTabButton.classList.remove('active');
+            calendarTabButton.classList.remove('active');
+
+            if (tabName === 'projects') {
+                projectsView.style.display = 'block';
+                projectsTabButton.classList.add('active');
+            } else if (tabName === 'clients') {
+                clientsView.style.display = 'block';
+                clientsTabButton.classList.add('active');
+                renderClientsTable(); // Render clients when tab is active
+            } else if (tabName === 'calendar') {
+                calendarView.style.display = 'block';
+                calendarTabButton.classList.add('active');
+                if (calendar) {
+                     updateCalendarEvents(); 
+                     calendar.render(); 
+                }
+            }
+        }
+
 
         // --- Initialization ---
         function initializePage() {
-            loadTasksFromLocalStorage();
+            loadDataFromLocalStorage();
+            populateProjectTypes();
+            populateProjectStatusFilterCheckboxes(); 
+            populateTaskStatusCheckboxes(); 
             initializeCalendar();
-            renderTasks(); // Initial render of tasks and calendar update
+            renderProjectsTable(); 
+            // renderClientsTable(); // Moved to switchTab for clients
+            selectedProjectId = null; 
+            tasksDisplayModal.style.display = 'none'; 
+            switchTab('projects'); 
         }
         
-        // --- LocalStorage ---
-        function loadTasksFromLocalStorage() {
-            const storedTasks = localStorage.getItem('tasks');
-            if (storedTasks) {
-                tasks = JSON.parse(storedTasks);
-            } else {
-                // Default tasks if localStorage is empty
-                tasks = [
-                    { id: 1, name: 'עיצוב דף נחיתה', project: 'אתר שיווקי', assignee: 'דנה', dueDate: '2024-06-15', status: 'בתהליך', description: 'עיצוב ראשוני לפי דרישות הלקוח' },
-                    { id: 2, name: 'פיתוח API למשתמשים', project: 'מערכת ניהול פנימית', assignee: 'יוסי', dueDate: '2024-07-01', status: 'חדש', description: 'API לרישום והתחברות משתמשים' },
-                    { id: 3, name: 'בדיקות קבלה', project: 'אפליקציית מובייל', assignee: 'צוות QA', dueDate: '2024-05-30', status: 'הושלם', description: 'בדיקות מקיפות לפני השקה' }
-                ];
-            }
+        function populateProjectTypes() {
+            const projectTypeModalSelect = document.getElementById('projectType');
+            projectTypeModalSelect.innerHTML = ''; 
+            PROJECT_TYPES.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                projectTypeModalSelect.appendChild(option);
+            });
+            
+            const projectTypeFilterSelect = document.getElementById('filterProjectType');
+            projectTypeFilterSelect.innerHTML = '<option value="">הכל</option>';
+             PROJECT_TYPES.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type; // Count will be added in renderProjectsTable
+                projectTypeFilterSelect.appendChild(option);
+            });
         }
 
-        function saveTasksToLocalStorage() {
-            localStorage.setItem('tasks', JSON.stringify(tasks));
+        function populateProjectStatusFilterCheckboxes() {
+            filterProjectStatusCheckboxesContainer.innerHTML = '';
+            const defaultProjectStatuses = ['חדש', 'בתהליך', 'בהמתנה'];
+            PROJECT_STATUSES.forEach(status => {
+                const div = document.createElement('div');
+                div.className = 'status-checkbox-item';
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `project_status_checkbox_${status.replace(/\s+/g, '_')}`;
+                checkbox.value = status;
+                checkbox.name = 'projectStatusFilter';
+                if (defaultProjectStatuses.includes(status)) {
+                    checkbox.checked = true;
+                }
+                checkbox.addEventListener('change', renderProjectsTable);
+                const label = document.createElement('label');
+                label.htmlFor = checkbox.id;
+                label.textContent = status; 
+                label.className = "mr-1 text-sm";
+                div.appendChild(checkbox);
+                div.appendChild(label);
+                filterProjectStatusCheckboxesContainer.appendChild(div);
+            });
         }
+        
+        function populateTaskStatusCheckboxes() {
+            filterTaskStatusCheckboxesContainer.innerHTML = ''; 
+            TASK_STATUSES.forEach(status => {
+                const div = document.createElement('div');
+                div.className = 'status-checkbox-item';
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `status_checkbox_${status.replace(/\s+/g, '_')}`; 
+                checkbox.value = status;
+                checkbox.name = 'taskStatusFilter';
+                checkbox.addEventListener('change', renderTasksTable);
+
+                const label = document.createElement('label');
+                label.htmlFor = checkbox.id;
+                label.textContent = status; 
+                label.className = "mr-1 text-sm"; 
+
+                div.appendChild(checkbox);
+                div.appendChild(label);
+                filterTaskStatusCheckboxesContainer.appendChild(div);
+            });
+        }
+
+
+        // --- LocalStorage ---
+        function loadDataFromLocalStorage() {
+            const storedProjects = localStorage.getItem('projects');
+            projects = storedProjects ? JSON.parse(storedProjects) : getDefaultProjects();
+            const storedTasks = localStorage.getItem('tasks');
+            tasks = storedTasks ? JSON.parse(storedTasks) : getDefaultTasks();
+            const storedClients = localStorage.getItem('clients');
+            clients = storedClients ? JSON.parse(storedClients) : getDefaultClients();
+        }
+
+        function saveDataToLocalStorage() {
+            localStorage.setItem('projects', JSON.stringify(projects));
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            localStorage.setItem('clients', JSON.stringify(clients));
+        }
+        
+        function getDefaultProjects() {
+            return [
+                {id: 1, name: 'פרויקט אתר שיווקי גדול', projectType: 'מכרז', clientName: 'לקוח אלפא', devices: 'שרתים, מחשבים', accessories: 'מקלדות', productDescription: 'הקמת אתר תדמית ושיווק לחברה גדולה עם דגש על עיצוב מודרני וחווית משתמש מיטבית, כולל אופטימיזציה למנועי חיפוש.', startDate: '2024-01-15', endDate: '2024-08-30', notes: 'דגש על SEO ונגישות. יש לבצע בדיקות מקיפות לפני ההשקה. פגישת סטטוס שבועית עם הלקוח בימי שני.', status: 'בתהליך'},
+                {id: 2, name: 'אפליקציית ניהול מלאי', projectType: 'הזמנה', clientName: 'לקוח בטא בע"מ', devices: 'סורקי ברקוד ניידים, טאבלטים', accessories: 'מדבקות ברקוד, מטענים', productDescription: 'פיתוח אפליקציה לניהול מלאי מחסן עבור רשת חנויות קמעונאיות. המערכת תאפשר מעקב בזמן אמת אחר פריטים.', startDate: '2024-03-01', endDate: '', notes: 'כולל אינטגרציה למערכת ERP קיימת של הלקוח. נדרשת הדרכה לצוות המחסן לאחר הפיתוח.', status: 'חדש'}
+            ];
+        }
+        function getDefaultTasks() { 
+             return [
+                { id: 1, projectId: 1, description: 'פגישות עם הלקוח ואיסוף דרישות מפורטות, כולל ניתוח מתחרים.', updateNotes: 'הלקוח ביקש להוסיף מודול בלוג', dueDate: '2024-02-01', status: 'הושלם', creationDate: '2024-01-20', completionDate: '2024-02-01'},
+                { id: 2, projectId: 1, description: 'הכנת סקיצות ומסכי דמו לאישור הלקוח. שלב א\' הושלם.', updateNotes: '', dueDate: '2024-03-15', status: 'בתהליך', creationDate: '2024-02-05', completionDate: null },
+                { id: 3, projectId: 2, description: 'ניהול הרשאות ופרופילים למשתמשי המערכת השונים.', updateNotes: 'להוסיף אימות דו שלבי', dueDate: '2024-04-10', status: 'חדש', creationDate: '2024-03-10', completionDate: null }
+            ];
+        }
+        function getDefaultClients() {
+            return [
+                {id: 1, clientName: 'לקוח אלפא', contactPerson: 'ישראל ישראלי', phone: '050-1234567', email: 'israel@alpha.com', city: 'תל אביב', notes: 'לקוח ותיק, חשוב מאוד.'},
+                {id: 2, clientName: 'לקוח בטא בע"מ', contactPerson: 'דנה כהן', phone: '052-7654321', email: 'dana@beta.co.il', city: 'חיפה', notes: 'פוטנציאל גדול להרחבת שירותים.'}
+            ];
+        }
+
 
         // --- Calendar ---
-        function initializeCalendar() {
+        function initializeCalendar() { 
             const calendarEl = document.getElementById('calendar');
+            if (!calendarEl) { 
+                console.error("Calendar element not found");
+                return;
+            }
             calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                locale: 'he', // Hebrew localization
-                headerToolbar: {
-                    start: 'title', // will be moved to right by CSS
-                    center: 'dayGridMonth,timeGridWeek,timeGridDay',
-                    end: 'today prev,next' // will be moved to left by CSS
-                },
-                events: [], // Will be populated by mapTasksToCalendarEvents
-                editable: false, // For now, not allowing drag/drop editing
-                eventDidMount: function(info) {
-                    // Add tooltip or custom rendering if needed
-                },
-                direction: 'rtl' // Set calendar direction to RTL
+                initialView: 'dayGridMonth', locale: 'he', 
+                headerToolbar: { start: 'title', center: 'dayGridMonth,timeGridWeek,timeGridDay', end: 'today prev,next' },
+                events: [], editable: false, direction: 'rtl'
             });
-            calendar.render();
         }
+        function mapTasksToCalendarEvents() { 
+             return tasks.filter(task => task.dueDate || task.completionDate).map(task => { 
+                const project = projects.find(p => p.id === task.projectId);
+                const projectTitle = project ? project.name : 'לא משויך';
+                const displayDate = task.status === 'הושלם' && task.completionDate ? task.completionDate : task.dueDate;
+                return {
+                    id: `task-${task.id}`, title: `${task.description.substring(0,25)}... (${projectTitle})`, start: displayDate, allDay: true, 
+                    backgroundColor: getEventColorByStatus(task.status), borderColor: getEventColorByStatus(task.status),
+                    extendedProps: { taskId: task.id, projectId: task.projectId, status: task.status, description: task.description }
+                };
+            });
+        }
+        function getEventColorByStatus(status) { 
+            switch (status) {
+                case 'חדש': return '#6366F1'; 
+                case 'בתהליך': return '#F59E0B'; 
+                case 'הושלם': return '#10B981';
+                case 'בהמתנה': return '#EAB308'; 
+                case 'בוטל': return '#EF4444'; 
+                default: return '#6B7280'; 
+            }
+        }
+        function updateCalendarEvents() { if (calendar) { calendar.removeAllEvents(); calendar.addEventSource(mapTasksToCalendarEvents()); } }
 
-        function mapTasksToCalendarEvents(tasksToMap) {
-            return tasksToMap.filter(task => task.dueDate).map(task => ({
-                id: task.id.toString(),
-                title: task.name,
-                start: task.dueDate,
-                allDay: true, // Assuming tasks are for the whole day
-                backgroundColor: getEventColorByStatus(task.status),
-                borderColor: getEventColorByStatus(task.status),
-                extendedProps: {
-                    project: task.project,
-                    assignee: task.assignee,
-                    status: task.status
+        // --- Projects ---
+        function renderProjectsTable() {
+            projectsTableBody.innerHTML = '';
+            let filteredProjects = [...projects];
+
+            const projectTextFilter = filterProjectTextInput.value.toLowerCase();
+            const projectTypeFilter = filterProjectTypeSelect.value;
+            const selectedProjectStatusCheckboxes = Array.from(filterProjectStatusCheckboxesContainer.querySelectorAll('input[type="checkbox"]:checked'));
+            const selectedProjectStatuses = selectedProjectStatusCheckboxes.map(cb => cb.value);
+
+            const projectTypeCounts = {};
+            PROJECT_TYPES.forEach(type => projectTypeCounts[type] = 0);
+            projects.forEach(p => { 
+                if(p.projectType) projectTypeCounts[p.projectType]++;
+            });
+            Array.from(filterProjectTypeSelect.options).forEach(option => {
+                if (option.value) { 
+                    option.textContent = `${option.value} (${projectTypeCounts[option.value] || 0})`;
                 }
-            }));
+            });
+            
+            const projectStatusCounts = {};
+            PROJECT_STATUSES.forEach(status => projectStatusCounts[status] = 0);
+            projects.forEach(p => { 
+                 if(p.status) projectStatusCounts[p.status]++;
+            });
+            filterProjectStatusCheckboxesContainer.querySelectorAll('.status-checkbox-item').forEach(item => {
+                const checkbox = item.querySelector('input[type="checkbox"]');
+                const label = item.querySelector('label');
+                const statusValue = checkbox.value;
+                label.textContent = `${statusValue} (${projectStatusCounts[statusValue] || 0})`;
+            });
+
+
+            if (projectTextFilter) {
+                filteredProjects = filteredProjects.filter(p => 
+                    (p.name && p.name.toLowerCase().includes(projectTextFilter)) ||
+                    (p.clientName && p.clientName.toLowerCase().includes(projectTextFilter)) ||
+                    (p.devices && p.devices.toLowerCase().includes(projectTextFilter)) ||
+                    (p.accessories && p.accessories.toLowerCase().includes(projectTextFilter)) ||
+                    (p.productDescription && p.productDescription.toLowerCase().includes(projectTextFilter)) ||
+                    (p.notes && p.notes.toLowerCase().includes(projectTextFilter))
+                );
+            }
+            if (projectTypeFilter) {
+                filteredProjects = filteredProjects.filter(p => p.projectType === projectTypeFilter);
+            }
+            if (selectedProjectStatuses.length > 0) {
+                filteredProjects = filteredProjects.filter(p => selectedProjectStatuses.includes(p.status));
+            }
+
+            const sortProjectsKey = sortProjectsBySelect.value;
+            filteredProjects.sort((a, b) => {
+                let valA = a[sortProjectsKey] || '';
+                let valB = b[sortProjectsKey] || '';
+                if (sortProjectsKey === 'startDate' || sortProjectsKey === 'endDate') {
+                    valA = valA ? new Date(valA) : new Date(0);
+                    valB = valB ? new Date(valB) : new Date(0);
+                    return valA - valB;
+                }
+                return valA.toString().toLowerCase().localeCompare(valB.toString().toLowerCase());
+            });
+
+            projectsListTitle.textContent = `רשימת פרויקטים (${filteredProjects.length})`;
+
+
+            filteredProjects.forEach(project => {
+                const row = projectsTableBody.insertRow();
+                row.dataset.projectId = project.id; 
+                row.className = `project-row border-b hover:bg-gray-100 transition duration-150 ease-in-out ${project.id === selectedProjectId ? 'selected' : ''}`;
+                row.style.borderColor = "var(--border-color)";
+                
+                let cell = row.insertCell(); cell.textContent = project.name || '-'; cell.classList.add('project-name-col');
+                row.insertCell().textContent = project.projectType || '-';
+                row.insertCell().textContent = project.clientName || '-';
+                row.insertCell().textContent = project.devices || '-';
+                row.insertCell().textContent = project.accessories || '-';
+                cell = row.insertCell(); cell.textContent = project.productDescription || '-'; cell.classList.add('description-col');
+                row.insertCell().textContent = project.startDate ? new Date(project.startDate).toLocaleDateString('he-IL') : '-';
+                row.insertCell().textContent = project.endDate ? new Date(project.endDate).toLocaleDateString('he-IL') : '-';
+                cell = row.insertCell(); cell.textContent = project.notes || '-'; cell.classList.add('notes-col');
+                
+                const statusCell = row.insertCell();
+                statusCell.classList.add('project-status-col'); 
+                statusCell.dataset.fieldkey = 'status';
+                statusCell.dataset.inputtype = 'select';
+                statusCell.dataset.options = JSON.stringify(PROJECT_STATUSES);
+                statusCell.onclick = (e) => { 
+                    e.stopPropagation(); 
+                    handleCellClickForEditing(statusCell, project.id, 'project'); 
+                };
+
+
+                const statusBadge = document.createElement('span');
+                statusBadge.textContent = project.status || 'לא ידוע';
+                statusBadge.className = `status-badge ${getStatusClass(project.status || '')}`;
+                statusCell.appendChild(statusBadge);
+
+                const actionsCell = row.insertCell();
+                actionsCell.className = 'actions-col'; 
+                const actionsWrapper = document.createElement('div');
+                actionsWrapper.className = 'actions-cell-content'; 
+
+                const viewTasksButton = document.createElement('button');
+                viewTasksButton.innerHTML = '👁️'; viewTasksButton.title = 'הצג משימות';
+                viewTasksButton.className = 'text-blue-500 hover:text-blue-700 table-action-button';
+                viewTasksButton.onclick = (e) => { e.stopPropagation(); displayTasksForProject(project.id); };
+                actionsWrapper.appendChild(viewTasksButton);
+
+                const editButton = document.createElement('button');
+                editButton.innerHTML = '✏️'; editButton.title = 'ערוך פרויקט';
+                editButton.className = 'text-yellow-500 hover:text-yellow-700 table-action-button';
+                editButton.onclick = (e) => { e.stopPropagation(); openEditProjectModal(project.id); };
+                actionsWrapper.appendChild(editButton);
+
+                const deleteButton = document.createElement('button');
+                deleteButton.innerHTML = '🗑️'; deleteButton.title = 'מחק פרויקט';
+                deleteButton.className = 'text-red-500 hover:text-red-700 table-action-button';
+                deleteButton.onclick = (e) => { e.stopPropagation(); deleteProject(project.id); };
+                actionsWrapper.appendChild(deleteButton);
+                
+                actionsCell.appendChild(actionsWrapper);
+                row.onclick = () => displayTasksForProject(project.id); 
+            });
+            saveDataToLocalStorage();
+            updateCalendarEvents(); 
         }
         
-        function getEventColorByStatus(status) {
-            switch (status) {
-                case 'חדש': return '#6366F1'; // Indigo-500
-                case 'בתהליך': return '#F59E0B'; // Amber-500
-                case 'הושלם': return '#10B981'; // Green-500
-                case 'בהמתנה': return '#EAB308'; // Yellow-500
-                case 'בוטל': return '#EF4444'; // Red-500
-                default: return '#6B7280'; // Gray-500
+        function handleProjectCellClickForEditing(cell, projectId) {
+            if (cell.querySelector('input, textarea, select')) {
+                const existingInput = cell.querySelector('input, textarea, select');
+                if (existingInput) {
+                    existingInput.focus();
+                    if (typeof existingInput.select === 'function') { 
+                        existingInput.select();
+                    }
+                }
+                return;
             }
+            const fieldKey = cell.dataset.fieldkey;
+            const inputType = cell.dataset.inputtype;
+            const options = cell.dataset.options ? JSON.parse(cell.dataset.options) : null;
+            makeProjectCellEditable(cell, projectId, fieldKey, inputType, options);
         }
 
-        function updateCalendarEvents() {
-            if (calendar) {
-                const calendarEvents = mapTasksToCalendarEvents(tasks);
-                calendar.removeAllEvents();
-                calendar.addEventSource(calendarEvents);
-            }
-        }
-
-        // --- Task Rendering and Filtering/Sorting ---
-        function renderTasks() {
-            tasksTableBody.innerHTML = ''; 
+        function makeProjectCellEditable(cell, projectId, fieldKey, inputType = 'text', optionsArray = null) {
+            const originalContentHTML = cell.innerHTML; 
+            const project = projects.find(p => p.id === projectId);
+            if (!project) return;
+            const originalTextValue = project[fieldKey] || '';
             
-            let filteredTasks = [...tasks];
+            cell.innerHTML = ''; 
+            cell.onclick = null; 
 
-            // Apply filters
-            const projectFilter = filterProjectInput.value.toLowerCase();
-            const assigneeFilter = filterAssigneeInput.value.toLowerCase();
-            const statusFilter = filterStatusSelect.value;
-
-            if (projectFilter) {
-                filteredTasks = filteredTasks.filter(task => task.project && task.project.toLowerCase().includes(projectFilter));
-            }
-            if (assigneeFilter) {
-                filteredTasks = filteredTasks.filter(task => task.assignee && task.assignee.toLowerCase().includes(assigneeFilter));
-            }
-            if (statusFilter) {
-                filteredTasks = filteredTasks.filter(task => task.status === statusFilter);
-            }
-
-            // Apply sorting
-            const sortBy = sortBySelect.value;
-            if (sortBy) {
-                filteredTasks.sort((a, b) => {
-                    let valA = a[sortBy];
-                    let valB = b[sortBy];
-
-                    if (sortBy === 'dueDate') { // Date sorting
-                        valA = a.dueDate ? new Date(a.dueDate) : new Date(0); // Handle undefined dates
-                        valB = b.dueDate ? new Date(b.dueDate) : new Date(0);
-                        return valA - valB;
-                    }
-                    if (typeof valA === 'string') {
-                        return valA.toLowerCase().localeCompare(valB ? valB.toLowerCase() : '');
-                    }
-                    return (valA || 0) - (valB || 0); // Handle undefined or null for numeric sort
+            let inputElement;
+            if (inputType === 'select') {
+                inputElement = document.createElement('select');
+                inputElement.className = 'inline-edit-input';
+                optionsArray.forEach(opt => {
+                    const option = document.createElement('option');
+                    option.value = opt;
+                    option.textContent = opt;
+                    if (opt === originalTextValue) option.selected = true;
+                    inputElement.appendChild(option);
                 });
+            } else { 
+                inputElement = document.createElement('input');
+                inputElement.type = inputType;
+                inputElement.className = 'inline-edit-input';
+                inputElement.value = originalTextValue;
             }
 
+            cell.appendChild(inputElement);
+            inputElement.focus();
+            
+            const saveChange = () => {
+                const newValue = inputElement.value;
+                const projectIndex = projects.findIndex(p => p.id === projectId);
+                if (projectIndex > -1) {
+                    if (projects[projectIndex][fieldKey] !== newValue) {
+                        projects[projectIndex][fieldKey] = newValue;
+                         renderProjectsTable(); 
+                    } else {
+                        cell.innerHTML = originalContentHTML; 
+                        cell.onclick = (e) => { e.stopPropagation(); handleProjectCellClickForEditing(cell, projectId);};
+                    }
+                } else {
+                     cell.innerHTML = originalContentHTML; 
+                     cell.onclick = (e) => { e.stopPropagation(); handleProjectCellClickForEditing(cell, projectId);};
+                }
+            };
+            
+            const cancelEdit = () => {
+                 renderProjectsTable(); 
+            };
 
-            if (filteredTasks.length === 0) {
-                tasksTableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-500">אין משימות להצגה לפי הסינון הנוכחי</td></tr>';
+            inputElement.addEventListener('blur', saveChange);
+            inputElement.addEventListener('change', saveChange); 
+            inputElement.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') { e.preventDefault(); cancelEdit(); } 
+                else if (e.key === 'Enter') { e.preventDefault(); saveChange(); }
+            });
+            inputElement.addEventListener('click', (e) => e.stopPropagation());
+        }
+
+
+        function openProjectModal(projectToEdit = null) {
+            projectForm.reset();
+            projectIdInput.value = '';
+            if (projectToEdit) {
+                projectModalTitle.textContent = 'ערוך פרויקט';
+                projectIdInput.value = projectToEdit.id;
+                document.getElementById('projectName').value = projectToEdit.name;
+                document.getElementById('projectType').value = projectToEdit.projectType;
+                document.getElementById('projectClientName').value = projectToEdit.clientName || '';
+                document.getElementById('projectDevices').value = projectToEdit.devices || '';
+                document.getElementById('projectAccessories').value = projectToEdit.accessories || '';
+                document.getElementById('projectProductDescription').value = projectToEdit.productDescription || '';
+                document.getElementById('projectStartDate').value = projectToEdit.startDate || '';
+                document.getElementById('projectEndDate').value = projectToEdit.endDate || '';
+                document.getElementById('projectStatus').value = projectToEdit.status || 'חדש';
+                document.getElementById('projectNotes').value = projectToEdit.notes || '';
             } else {
-                filteredTasks.forEach(task => {
+                projectModalTitle.textContent = 'הוסף פרויקט חדש';
+                document.getElementById('projectStatus').value = 'חדש'; 
+            }
+            projectModal.style.display = 'block';
+        }
+        function openEditProjectModal(id) { openProjectModal(projects.find(p => p.id === id)); }
+        function closeProjectModal() { projectModal.style.display = 'none'; }
+
+        projectForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = projectIdInput.value ? parseInt(projectIdInput.value) : null;
+            const projectData = {
+                name: document.getElementById('projectName').value,
+                projectType: document.getElementById('projectType').value,
+                clientName: document.getElementById('projectClientName').value,
+                devices: document.getElementById('projectDevices').value,
+                accessories: document.getElementById('projectAccessories').value,
+                productDescription: document.getElementById('projectProductDescription').value,
+                startDate: document.getElementById('projectStartDate').value,
+                endDate: document.getElementById('projectEndDate').value,
+                status: document.getElementById('projectStatus').value,
+                notes: document.getElementById('projectNotes').value,
+            };
+            if (!projectData.name || !projectData.projectType) {
+                alert('שם פרויקט וסוג פרויקט הם שדות חובה.');
+                return;
+            }
+
+            if (id) { 
+                const index = projects.findIndex(p => p.id === id);
+                if (index > -1) projects[index] = { ...projects[index], ...projectData };
+            } else { 
+                projectData.id = projects.length > 0 ? Math.max(...projects.map(p => p.id)) + 1 : 1;
+                projects.push(projectData);
+            }
+            renderProjectsTable();
+            closeProjectModal();
+            if (id === selectedProjectId || !id) { 
+                 displayTasksForProject(selectedProjectId || projectData.id);
+            }
+        });
+
+        function deleteProject(id) {
+            const projectToDelete = projects.find(p => p.id === id);
+            if (projectToDelete && confirm(`האם אתה בטוח שברצונך למחוק את הפרויקט "${projectToDelete.name}" וכל המשימות המשויכות אליו?`)) {
+                projects = projects.filter(p => p.id !== id);
+                tasks = tasks.filter(t => t.projectId !== id); 
+                if (selectedProjectId === id) {
+                    selectedProjectId = null;
+                    tasksDisplayModal.style.display = 'none'; 
+                }
+                renderProjectsTable();
+            }
+        }
+        
+        // --- Tasks ---
+        function displayTasksForProject(projectId) {
+            selectedProjectId = projectId;
+            const project = projects.find(p => p.id === projectId);
+            if (project) {
+                
+                const defaultStatuses = ['חדש', 'בתהליך', 'בהמתנה'];
+                const checkboxes = filterTaskStatusCheckboxesContainer.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(cb => {
+                    cb.checked = defaultStatuses.includes(cb.value);
+                });
+
+                tasksDisplayModal.style.display = 'block'; 
+                renderTasksTable(); 
+                document.querySelectorAll('.project-row').forEach(row => {
+                    if (parseInt(row.dataset.projectId) === projectId) {
+                        row.classList.add('selected');
+                    } else {
+                        row.classList.remove('selected');
+                    }
+                });
+            } else {
+                tasksDisplayModal.style.display = 'none';
+                selectedProjectId = null; 
+            }
+        }
+        
+        function renderTasksTable() {
+            if (!selectedProjectId) {
+                tasksTableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-500">יש לבחור פרויקט להצגת משימות.</td></tr>';
+                if(taskCountInTitleSpan) taskCountInTitleSpan.textContent = '(0)';
+                return;
+            }
+            let projectTasks = tasks.filter(task => task.projectId === selectedProjectId);
+            
+            const freeTextFilter = filterTaskTextInput.value.toLowerCase(); 
+            
+            const selectedStatusCheckboxes = Array.from(filterTaskStatusCheckboxesContainer.querySelectorAll('input[type="checkbox"]:checked'));
+            const selectedStatuses = selectedStatusCheckboxes.map(cb => cb.value);
+
+            const taskStatusCounts = {};
+            TASK_STATUSES.forEach(status => taskStatusCounts[status] = 0);
+            tasks.filter(t => t.projectId === selectedProjectId).forEach(task => { 
+                if(task.status) taskStatusCounts[task.status]++;
+            });
+            filterTaskStatusCheckboxesContainer.querySelectorAll('.status-checkbox-item').forEach(item => {
+                const checkbox = item.querySelector('input[type="checkbox"]');
+                const label = item.querySelector('label');
+                const statusValue = checkbox.value;
+                label.textContent = `${statusValue} (${taskStatusCounts[statusValue] || 0})`;
+            });
+
+
+            if (freeTextFilter) {
+                projectTasks = projectTasks.filter(task => 
+                    (task.description && task.description.toLowerCase().includes(freeTextFilter)) ||
+                    (task.updateNotes && task.updateNotes.toLowerCase().includes(freeTextFilter))
+                );
+            }
+            
+            if (selectedStatuses.length > 0) {
+                projectTasks = projectTasks.filter(task => selectedStatuses.includes(task.status));
+            }
+
+            const sortBy = sortTasksBySelect.value;
+            const taskNumberMap = new Map();
+            
+            [...tasks.filter(t => t.projectId === selectedProjectId)]
+                .sort((a,b) => (new Date(a.creationDate) || a.id) - (new Date(b.creationDate) || b.id))
+                .forEach((task, index) => {
+                    taskNumberMap.set(task.id, index + 1);
+                });
+
+            if (sortBy === 'dueDate') {
+                projectTasks.sort((a, b) => {
+                    const dateA = a.status === 'הושלם' && a.completionDate ? new Date(a.completionDate) : (a.dueDate ? new Date(a.dueDate) : new Date(Date.now() + 8640000000000000)); 
+                    const dateB = b.status === 'הושלם' && b.completionDate ? new Date(b.completionDate) : (b.dueDate ? new Date(b.dueDate) : new Date(Date.now() + 8640000000000000));
+                    return dateA - dateB;
+                });
+            } else if (sortBy === 'status') {
+                projectTasks.sort((a, b) => (a.status || '').localeCompare(b.status || ''));
+            } else { 
+                 projectTasks.sort((a,b) => (taskNumberMap.get(a.id) || 0) - (taskNumberMap.get(b.id) || 0));
+            }
+
+            const currentProject = projects.find(p => p.id === selectedProjectId);
+            tasksForProjectTitle.textContent = `משימות עבור פרויקט: ${currentProject ? currentProject.name : ''}`;
+            if(taskCountInTitleSpan) taskCountInTitleSpan.textContent = `(${projectTasks.length})`;
+
+
+            tasksTableBody.innerHTML = '';
+            if (projectTasks.length === 0) {
+                tasksTableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-500">אין משימות להצגה עבור פרויקט זה (או לפי הסינון).</td></tr>';
+            } else {
+                projectTasks.forEach(task => {
                     const row = tasksTableBody.insertRow();
-                    row.className = `border-b border-gray-200 hover:bg-gray-100 transition duration-150 ease-in-out ${task.status === 'הושלם' ? 'line-through text-gray-500' : ''}`;
+                    row.dataset.taskId = task.id; 
+                    row.className = `border-b hover:bg-gray-100 transition duration-150 ease-in-out ${task.status === 'הושלם' ? 'line-through text-gray-500' : ''}`;
+                    row.style.borderColor = "var(--border-color)";
                     
-                    row.insertCell().textContent = task.name;
-                    row.insertCell().textContent = task.project || '-';
-                    row.insertCell().textContent = task.assignee || '-';
-                    row.insertCell().textContent = task.dueDate ? new Date(task.dueDate).toLocaleDateString('he-IL') : 'לא הוגדר';
+                    let cell = row.insertCell(); 
+                    cell.textContent = taskNumberMap.get(task.id) || '-'; 
+                    cell.classList.add('task-id-col');
+
+                    const descriptionCell = row.insertCell(); 
+                    descriptionCell.textContent = task.description || '-'; 
+                    descriptionCell.classList.add('description-col'); 
+                    descriptionCell.dataset.fieldkey = 'description'; 
+                    descriptionCell.dataset.inputtype = 'textarea';  
+                    descriptionCell.onclick = (e) => handleCellClickForEditing(descriptionCell, task.id, 'task');
+
+
+                    const updateNotesCell = row.insertCell(); 
+                    updateNotesCell.textContent = task.updateNotes || '-'; 
+                    updateNotesCell.classList.add('task-update-notes-col');
+                    updateNotesCell.dataset.fieldkey = 'updateNotes'; 
+                    updateNotesCell.dataset.inputtype = 'textarea';   
+                    updateNotesCell.onclick = (e) => handleCellClickForEditing(updateNotesCell, task.id, 'task');
+                    
+
+                    const dateCell = row.insertCell(); 
+                    dateCell.classList.add('task-date-col');
+                    if (task.status === 'הושלם' && task.completionDate) {
+                        dateCell.textContent = new Date(task.completionDate).toLocaleDateString('he-IL');
+                    } else {
+                        dateCell.textContent = task.dueDate ? new Date(task.dueDate).toLocaleDateString('he-IL') : '-';
+                        dateCell.dataset.fieldkey = 'dueDate'; 
+                        dateCell.dataset.inputtype = 'date';    
+                        dateCell.onclick = (e) => { if(task.status !== 'הושלם') handleCellClickForEditing(dateCell, task.id, 'task'); };
+                    }
                     
                     const statusCell = row.insertCell();
+                    statusCell.classList.add('task-status-col');
                     const statusBadge = document.createElement('span');
                     statusBadge.textContent = task.status;
-                    statusBadge.className = `px-2 py-1 text-xs font-semibold rounded-full ${getStatusClass(task.status)}`;
+                    statusBadge.className = `status-badge ${getStatusClass(task.status)}`;
                     statusCell.appendChild(statusBadge);
+                    statusCell.dataset.fieldkey = 'status'; 
+                    statusCell.dataset.inputtype = 'select'; 
+                    statusCell.dataset.options = JSON.stringify(TASK_STATUSES); 
+                    statusCell.onclick = (e) => handleCellClickForEditing(statusCell, task.id, 'task');
+
 
                     const actionsCell = row.insertCell();
-                    actionsCell.className = 'py-3 px-6 text-left whitespace-nowrap';
+                    actionsCell.className = 'actions-col'; 
+                    const actionsWrapper = document.createElement('div');
+                    actionsWrapper.className = 'actions-cell-content';
 
-                    const editButton = document.createElement('button');
-                    editButton.innerHTML = '✏️'; 
-                    editButton.title = 'ערוך משימה';
-                    editButton.className = 'text-yellow-500 hover:text-yellow-700 font-bold py-1 px-2 rounded text-lg ml-2 transition duration-150';
-                    editButton.onclick = () => openEditModal(task.id);
-                    actionsCell.appendChild(editButton);
-
-                    const deleteButton = document.createElement('button');
-                    deleteButton.innerHTML = '🗑️'; 
-                    deleteButton.title = 'מחק משימה';
-                    deleteButton.className = 'text-red-500 hover:text-red-700 font-bold py-1 px-2 rounded text-lg ml-2 transition duration-150';
-                    deleteButton.onclick = () => deleteTask(task.id);
-                    actionsCell.appendChild(deleteButton);
-                    
                     if (task.status !== 'הושלם') {
-                        const completeButton = document.createElement('button');
-                        completeButton.innerHTML = '✔️'; 
-                        completeButton.title = 'סמן כהושלם';
-                        completeButton.className = 'text-green-500 hover:text-green-700 font-bold py-1 px-2 rounded text-lg transition duration-150';
-                        completeButton.onclick = () => toggleCompleteTask(task.id);
-                        actionsCell.appendChild(completeButton);
+                        const completeBtn = document.createElement('button'); completeBtn.innerHTML = '✔️'; completeBtn.title = 'סמן כהושלם';
+                        completeBtn.className = 'text-green-500 hover:text-green-700 table-action-button';
+                        completeBtn.onclick = (e) => { e.stopPropagation(); markTaskCompleted(task.id); };
+                        actionsWrapper.appendChild(completeBtn);
                     }
+                    
+                    const editBtnModal = document.createElement('button'); editBtnModal.innerHTML = '✏️'; editBtnModal.title = 'ערוך במודל';
+                    editBtnModal.className = 'text-blue-500 hover:text-blue-700 table-action-button';
+                    editBtnModal.onclick = (e) => { e.stopPropagation(); openEditTaskModal(task.id); };
+                    actionsWrapper.appendChild(editBtnModal);
+
+
+                    const deleteBtn = document.createElement('button'); deleteBtn.innerHTML = '🗑️'; deleteBtn.title = 'מחק משימה';
+                    deleteBtn.className = 'text-red-500 hover:text-red-700 table-action-button';
+                    deleteBtn.onclick = (e) => { e.stopPropagation(); deleteTask(task.id); };
+                    actionsWrapper.appendChild(deleteBtn);
+                    actionsCell.appendChild(actionsWrapper);
                 });
             }
-            taskCountSpan.textContent = filteredTasks.length;
-            updateCalendarEvents(); // Update calendar whenever tasks are rendered/filtered
-            saveTasksToLocalStorage(); // Save changes
+            saveDataToLocalStorage();
+            updateCalendarEvents();
         }
         
-        function getStatusClass(status) {
-            switch (status) {
-                case 'חדש': return 'status-new';
-                case 'בתהליך': return 'status-in-progress';
-                case 'הושלם': return 'status-completed';
-                case 'בהמתנה': return 'status-pending';
-                case 'בוטל': return 'status-cancelled';
-                default: return 'bg-gray-200 text-gray-800';
+        function handleCellClickForEditing(cell, itemId, itemType = 'task') { 
+            if (cell.querySelector('input, textarea, select')) {
+                const existingInput = cell.querySelector('input, textarea, select');
+                if (existingInput) {
+                    existingInput.focus();
+                    if (typeof existingInput.select === 'function') { 
+                        existingInput.select();
+                    }
+                }
+                return;
+            }
+            const fieldKey = cell.dataset.fieldkey;
+            const inputType = cell.dataset.inputtype;
+            const options = cell.dataset.options ? JSON.parse(cell.dataset.options) : null;
+            
+            if (itemType === 'task') {
+                makeCellEditable(cell, itemId, fieldKey, inputType, options);
+            } else if (itemType === 'project') {
+                makeProjectCellEditable(cell, itemId, fieldKey, inputType, options);
             }
         }
 
-        // --- Task Modal Logic ---
-        function openTaskModal(taskToEdit = null) {
-            taskForm.reset(); 
+
+        function makeCellEditable(cell, taskId, fieldKey, inputType = 'text', optionsArray = null) {
+            const originalContentHTML = cell.innerHTML; 
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+            const originalTextValue = task[fieldKey] || '';
+            
+            cell.innerHTML = ''; 
+            cell.onclick = null; 
+
+            let inputElement;
+            if (inputType === 'textarea') {
+                inputElement = document.createElement('textarea');
+                inputElement.className = 'inline-edit-textarea';
+                inputElement.value = originalTextValue;
+            } else if (inputType === 'select') {
+                inputElement = document.createElement('select');
+                inputElement.className = 'inline-edit-input';
+                optionsArray.forEach(opt => {
+                    const option = document.createElement('option');
+                    option.value = opt;
+                    option.textContent = opt;
+                    if (opt === originalTextValue) option.selected = true;
+                    inputElement.appendChild(option);
+                });
+            } else { 
+                inputElement = document.createElement('input');
+                inputElement.type = inputType;
+                inputElement.className = 'inline-edit-input';
+                inputElement.value = originalTextValue;
+            }
+
+            cell.appendChild(inputElement);
+            inputElement.focus();
+            if (inputType === 'textarea' || (inputElement.select && typeof inputElement.select === 'function')) { 
+                inputElement.select();
+            }
+            
+            let editingCancelledByEscape = false;
+
+            const saveChange = () => {
+                if (editingCancelledByEscape) { 
+                    renderTasksTable(); 
+                    return;
+                }
+                const newValue = inputElement.value;
+                const taskIndex = tasks.findIndex(t => t.id === taskId);
+                if (taskIndex > -1) {
+                    if (tasks[taskIndex][fieldKey] !== newValue) {
+                        tasks[taskIndex][fieldKey] = newValue;
+                        if (fieldKey === 'status') { 
+                            updateProjectStatusBasedOnTasks(tasks[taskIndex].projectId);
+                            if (newValue === 'הושלם' && !tasks[taskIndex].completionDate) {
+                                tasks[taskIndex].completionDate = new Date().toISOString().split('T')[0];
+                            } else if (newValue !== 'הושלם') {
+                                tasks[taskIndex].completionDate = null; 
+                            }
+                        }
+                         renderTasksTable(); 
+                         renderProjectsTable(); 
+                    } else {
+                        renderTasksTable(); 
+                    }
+                } else {
+                     renderTasksTable(); 
+                }
+            };
+            
+            const cancelEdit = () => {
+                editingCancelledByEscape = true; 
+                renderTasksTable(); 
+            };
+
+            inputElement.addEventListener('blur', saveChange);
+            inputElement.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    e.preventDefault(); 
+                    cancelEdit();
+                } else if (e.key === 'Enter') {
+                    if (inputType === 'textarea') {
+                        // Allow default Enter behavior (new line). Save on blur.
+                        return; 
+                    } else { 
+                        e.preventDefault();
+                        saveChange();
+                    }
+                }
+            });
+            inputElement.addEventListener('click', (e) => e.stopPropagation());
+        }
+
+
+        function markTaskCompleted(taskId) {
+            const taskIndex = tasks.findIndex(t => t.id === taskId);
+            if (taskIndex > -1) {
+                tasks[taskIndex].status = 'הושלם';
+                tasks[taskIndex].completionDate = new Date().toISOString().split('T')[0];
+                updateProjectStatusBasedOnTasks(tasks[taskIndex].projectId);
+                renderTasksTable();
+                renderProjectsTable(); 
+            }
+        }
+
+        function updateProjectStatusBasedOnTasks(projectId) {
+            const projectIndex = projects.findIndex(p => p.id === projectId);
+            if (projectIndex === -1) return;
+
+            if (projects[projectIndex].status === 'חדש') {
+                const projectTasks = tasks.filter(t => t.projectId === projectId);
+                const hasActiveTask = projectTasks.some(t => ['בתהליך', 'בהמתנה', 'הושלם'].includes(t.status));
+                if (hasActiveTask) {
+                    projects[projectIndex].status = 'בתהליך';
+                }
+            }
+        }
+
+
+        function openTaskModalForProject(taskToEdit = null) {
+            if (!selectedProjectId) {
+                alert("יש לבחור פרויקט לפני הוספת משימה.");
+                return;
+            }
+            taskForm.reset();
+            taskProjectIdInput.value = selectedProjectId; 
+            taskIdInput.value = '';
+
             if (taskToEdit) {
-                modalTitle.textContent = 'ערוך משימה';
+                taskModalTitle.textContent = 'ערוך משימה';
                 taskIdInput.value = taskToEdit.id;
-                document.getElementById('taskName').value = taskToEdit.name;
-                document.getElementById('taskProject').value = taskToEdit.project || '';
-                document.getElementById('taskAssignee').value = taskToEdit.assignee || '';
-                document.getElementById('taskDueDate').value = taskToEdit.dueDate || '';
-                document.getElementById('taskStatus').value = taskToEdit.status;
-                document.getElementById('taskDescription').value = taskToEdit.description || '';
+                taskProjectIdInput.value = taskToEdit.projectId; 
+                document.getElementById('taskDescriptionModal').value = taskToEdit.description || '';
+                document.getElementById('taskUpdateNotesModal').value = taskToEdit.updateNotes || '';
+                document.getElementById('taskDueDateModal').value = taskToEdit.dueDate || '';
+                document.getElementById('taskStatusModal').value = taskToEdit.status;
             } else {
-                modalTitle.textContent = 'הוסף משימה חדשה';
-                taskIdInput.value = ''; 
+                const selectedProjectObj = projects.find(p => p.id === selectedProjectId);
+                taskModalTitle.textContent = `הוסף משימה חדשה לפרויקט: ${selectedProjectObj ? selectedProjectObj.name : ''}`;
             }
             taskModal.style.display = 'block';
         }
 
-        function openEditModal(id) {
-            const taskToEdit = tasks.find(task => task.id === id);
-            if (taskToEdit) {
-                openTaskModal(taskToEdit);
-            }
-        }
-        
-        function closeModal() {
-            taskModal.style.display = 'none';
-        }
+        function openEditTaskModal(id) { openTaskModalForProject(tasks.find(t => t.id === id));}
+        function closeTaskModal() { taskModal.style.display = 'none'; }
 
-        taskForm.addEventListener('submit', function(event) {
-            event.preventDefault();
+        taskForm.addEventListener('submit', (e) => {
+            e.preventDefault();
             const id = taskIdInput.value ? parseInt(taskIdInput.value) : null;
-            const name = document.getElementById('taskName').value;
-            const project = document.getElementById('taskProject').value;
-            const assignee = document.getElementById('taskAssignee').value;
-            const dueDate = document.getElementById('taskDueDate').value;
-            const status = document.getElementById('taskStatus').value;
-            const description = document.getElementById('taskDescription').value;
+            const currentProjectId = parseInt(taskProjectIdInput.value); 
 
+            const taskData = {
+                projectId: currentProjectId,
+                description: document.getElementById('taskDescriptionModal').value,
+                updateNotes: document.getElementById('taskUpdateNotesModal').value,
+                dueDate: document.getElementById('taskDueDateModal').value,
+                status: document.getElementById('taskStatusModal').value,
+                completionDate: null 
+            };
+
+            if (!taskData.description) { alert('תיאור המשימה הוא שדה חובה.'); return; }
+            
             if (id) { 
-                const taskIndex = tasks.findIndex(task => task.id === id);
-                if (taskIndex > -1) {
-                    tasks[taskIndex] = { ...tasks[taskIndex], name, project, assignee, dueDate, status, description };
+                const index = tasks.findIndex(t => t.id === id);
+                if (index > -1) {
+                    const existingTask = tasks[index];
+                    taskData.creationDate = existingTask.creationDate; 
+                    if (taskData.status === 'הושלם' && !existingTask.completionDate) {
+                        taskData.completionDate = new Date().toISOString().split('T')[0];
+                    } else if (taskData.status !== 'הושלם') {
+                        taskData.completionDate = null;
+                    } else {
+                        taskData.completionDate = existingTask.completionDate; 
+                    }
+                    tasks[index] = { ...existingTask, ...taskData };
                 }
             } else { 
-                const newId = tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1;
-                tasks.push({ id: newId, name, project, assignee, dueDate, status, description });
+                taskData.id = tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1;
+                taskData.creationDate = new Date().toISOString().split('T')[0]; 
+                if (taskData.status === 'הושלם') {
+                    taskData.completionDate = new Date().toISOString().split('T')[0];
+                }
+                tasks.push(taskData);
             }
-            renderTasks();
-            closeModal();
+            updateProjectStatusBasedOnTasks(currentProjectId);
+            renderTasksTable();
+            renderProjectsTable(); 
+            closeTaskModal();
         });
 
         function deleteTask(id) {
-            // For a real app, use a custom confirmation modal instead of console.log
-            console.log(`בקשה למחיקת משימה ${id}. בפועל, כדאי להוסיף כאן דיאלוג אישור.`);
-            tasks = tasks.filter(task => task.id !== id);
-            renderTasks();
-        }
-
-        function toggleCompleteTask(id) {
-            const taskIndex = tasks.findIndex(task => task.id === id);
-            if (taskIndex > -1) {
-                tasks[taskIndex].status = (tasks[taskIndex].status === 'הושלם') ? 'בתהליך' : 'הושלם';
-                renderTasks();
+            const taskToDelete = tasks.find(t => t.id === id);
+            if (taskToDelete && confirm(`האם אתה בטוח שברצונך למחוק את המשימה "${taskToDelete.description.substring(0,30)}..."?`)) {
+                const projectIdOfDeletedTask = taskToDelete.projectId;
+                tasks = tasks.filter(t => t.id !== id);
+                updateProjectStatusBasedOnTasks(projectIdOfDeletedTask); 
+                renderTasksTable();
+                renderProjectsTable(); 
             }
         }
         
-        // Event listeners
-        openModalButton.onclick = () => openTaskModal();
-        closeButton.onclick = closeModal;
-        cancelButton.onclick = closeModal;
-        window.onclick = function(event) { 
-            if (event.target == taskModal) {
-                closeModal();
+        function getStatusClass(status) { 
+            status = status || ""; 
+            switch (status.toLowerCase()) {
+                case 'חדש': return 'status-new'; case 'בתהליך': return 'status-in-progress';
+                case 'הסתיים': case 'הושלם': return 'status-completed'; 
+                case 'בהמתנה': return 'status-pending'; case 'בוטל': return 'status-cancelled';
+                default: return 'bg-gray-300 text-gray-800';
             }
         }
+        
+        // Event Listeners for Modals and Filters
+        openProjectModalButton.addEventListener('click', () => openProjectModal());
+        closeProjectModalButton.addEventListener('click', closeProjectModal);
+        cancelProjectButton.addEventListener('click', closeProjectModal);
+        
+        openTaskModalButton.addEventListener('click', () => openTaskModalForProject());
+        closeTaskModalButton.addEventListener('click', closeTaskModal);
+        cancelTaskButton.addEventListener('click', closeTaskModal);
+        
+        if(closeTasksDisplayModalButton) { 
+            closeTasksDisplayModalButton.addEventListener('click', () => {
+                tasksDisplayModal.style.display = 'none';
+                selectedProjectId = null;
+                document.querySelectorAll('.project-row.selected').forEach(row => row.classList.remove('selected'));
+            });
+        }
 
-        filterProjectInput.addEventListener('input', renderTasks);
-        filterAssigneeInput.addEventListener('input', renderTasks);
-        filterStatusSelect.addEventListener('change', renderTasks);
-        sortBySelect.addEventListener('change', renderTasks);
+        window.onclick = function(event) { 
+            if (event.target == projectModal) closeProjectModal();
+            if (event.target == taskModal) closeTaskModal();
+            if (event.target == tasksDisplayModal) { 
+                 tasksDisplayModal.style.display = 'none';
+                 selectedProjectId = null;
+                 document.querySelectorAll('.project-row.selected').forEach(row => row.classList.remove('selected'));
+            }
+        }
+        filterTaskTextInput.addEventListener('input', renderTasksTable);
+        sortTasksBySelect.addEventListener('change', renderTasksTable);
+        // Project filter listeners
+        filterProjectTextInput.addEventListener('input', renderProjectsTable);
+        filterProjectTypeSelect.addEventListener('change', renderProjectsTable);
+        sortProjectsBySelect.addEventListener('change', renderProjectsTable);
+
 
         // Initial check for login status
         checkLogin();
