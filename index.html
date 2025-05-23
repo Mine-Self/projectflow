@@ -7,26 +7,44 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet" />
+    
+    <link rel="manifest" href="manifest.json">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="מנהל משימות">
+    <link rel="apple-touch-icon" href="https://placehold.co/180x180/4F46E5/FFFFFF?text=מנהל&font=assistant">
+
+
     <style>
         body { 
             font-family: 'Assistant', 'Inter', sans-serif; 
             background-color: #f3f4f6; /* gray-100 */
             color: #1f2937; /* gray-800 */
+            -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
         }
         .card { background-color: #ffffff; border: 1px solid #d1d5db; /* gray-300 */ }
         .modal, .login-modal, .tasks-display-modal, .branches-modal, .contacts-modal { 
             display: none; position: fixed; z-index: 100; 
             left: 0; top: 0; width: 100%; height: 100%; 
             overflow: auto; background-color: rgba(0,0,0,0.6); 
-            padding-top: 20px;
+            padding-top: 1rem; /* Reduced padding for mobile */
+            padding-bottom: 1rem;
         }
         .modal-content, .login-modal-content, .tasks-modal-content, .branches-modal-content, .contacts-modal-content { 
-            background-color: #fefefe; margin: 2% auto; padding: 20px; 
+            background-color: #fefefe; margin: 2% auto; padding: 1rem; /* Reduced padding for mobile */
             border: 1px solid #d1d5db; /* gray-300 */
-            width: 90%; 
+            width: 95%; /* More width on mobile */
             border-radius: 8px; position: relative;
             color: #1f2937; /* gray-800 */
         }
+        @media (min-width: 640px) { /* sm breakpoint */
+            .modal-content, .login-modal-content, .tasks-modal-content, .branches-modal-content, .contacts-modal-content {
+                 padding: 20px;
+                 width: 90%;
+            }
+        }
+
         .login-modal { display: flex; align-items: center; justify-content: center; padding-top: 0;}
         .login-modal-content { margin: auto; max-width: 500px; }
         .modal-content { max-width: 700px; } 
@@ -42,7 +60,7 @@
         }
 
         .close-button { 
-             color: #aaa; position: absolute; left: 15px; top: 10px; 
+             color: #aaa; position: absolute; left: 10px; top: 5px; /* Adjusted for smaller padding */
              font-size: 28px; font-weight: bold; cursor: pointer; 
         }
         .close-button:hover, .close-button:focus { color: black; text-decoration: none; }
@@ -51,33 +69,33 @@
         
         .rtl-table th, .rtl-table td { 
             text-align: right; 
-            padding: 0.4rem 0.5rem; 
+            padding: 0.4rem 0.3rem; /* Slightly reduced padding */
             white-space: normal; 
             vertical-align: top; 
-            min-height: 40px; 
+            min-height: 36px; /* Slightly reduced min-height */
         }
-        .rtl-table th.project-name-col, .rtl-table td.project-name-col { min-width: 120px; max-width: 200px; cursor:pointer; } 
+        .rtl-table th.project-name-col, .rtl-table td.project-name-col { min-width: 100px; max-width: 180px; cursor:pointer; } 
         .rtl-table th.description-col, .rtl-table td.description-col,
         .rtl-table th.notes-col, .rtl-table td.notes-col,
         .rtl-table th.task-update-notes-col, .rtl-table td.task-update-notes-col { 
-            min-width: 150px; max-width: 250px; cursor: pointer; 
+            min-width: 120px; max-width: 220px; cursor: pointer; 
             white-space: pre-wrap; 
             word-break: break-word; 
         }
-        .rtl-table th.task-date-col, .rtl-table td.task-date-col { min-width: 100px; cursor: pointer; }
-        .rtl-table th.task-status-col, .rtl-table td.task-status-col { min-width: 100px; cursor: pointer; }
-        .rtl-table th.project-status-col, .rtl-table td.project-status-col { min-width: 100px; cursor: pointer; }
+        .rtl-table th.task-date-col, .rtl-table td.task-date-col { min-width: 80px; cursor: pointer; }
+        .rtl-table th.task-status-col, .rtl-table td.task-status-col { min-width: 80px; cursor: pointer; }
+        .rtl-table th.project-status-col, .rtl-table td.project-status-col { min-width: 80px; cursor: pointer; }
         .rtl-table tr.clickable-row:hover { background-color: #f0f4f8; cursor: pointer; }
 
 
-        .rtl-table th.actions-col, .rtl-table td.actions-col { min-width: 35px; }
-        .rtl-table th.task-id-col, .rtl-table td.task-id-col { min-width: 20px; max-width:30px; padding-right: 0.1rem; padding-left: 0.1rem; text-align: center;}
+        .rtl-table th.actions-col, .rtl-table td.actions-col { min-width: 30px; }
+        .rtl-table th.task-id-col, .rtl-table td.task-id-col { min-width: 15px; max-width:25px; padding-right: 0.1rem; padding-left: 0.1rem; text-align: center;}
 
 
-        .rtl-table th:first-child, .rtl-table td:first-child { padding-right: 0.75rem; }
-        .rtl-table th:last-child, .rtl-table td:last-child { padding-left: 0.75rem; }
+        .rtl-table th:first-child, .rtl-table td:first-child { padding-right: 0.5rem; }
+        .rtl-table th:last-child, .rtl-table td:last-child { padding-left: 0.5rem; }
         
-        .status-badge { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; text-transform: capitalize;}
+        .status-badge { padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 500; text-transform: capitalize;}
         .status-new { background-color: #E0E7FF; color: #3730A3; } 
         .status-in-progress { background-color: #FEF3C7; color: #92400E; } 
         .status-completed { background-color: #D1FAE5; color: #065F46; } 
@@ -157,43 +175,42 @@
         </div>
     </div>
 
-    <div id="appContainer" class="container mx-auto p-4 sm:p-6 lg:p-8">
-        <header class="mb-6 text-center">
-            <h1 class="text-3xl sm:text-4xl font-bold text-indigo-600">ניהול פרויקטים ומשימות</h1>
-            <div class="flex justify-center items-center mt-2 space-x-4 space-x-reverse text-gray-600">
+    <div id="appContainer" class="container mx-auto p-2 sm:p-4 md:p-6 lg:p-8"> <header class="mb-6 text-center">
+            <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-indigo-600">ניהול פרויקטים ומשימות</h1>
+            <div class="flex flex-col sm:flex-row justify-center items-center mt-2 space-y-1 sm:space-y-0 sm:space-x-4 sm:space-x-reverse text-gray-600">
                 <p>משתמש מחובר: <span id="loggedInUserEmail"></span></p>
                 <button id="logoutButton" class="text-indigo-600 hover:text-indigo-700 hover:underline text-xs">(התנתק)</button>
             </div>
         </header>
 
         <div class="mb-4 flex border-b border-gray-300">
-            <button id="projectsTabButton" class="tab-button active">פרויקטים</button>
-            <button id="clientsTabButton" class="tab-button">לקוחות</button>
-            <button id="calendarTabButton" class="tab-button">לוח שנה</button>
+            <button id="projectsTabButton" class="tab-button active text-sm sm:text-base">פרויקטים</button>
+            <button id="clientsTabButton" class="tab-button text-sm sm:text-base">לקוחות</button>
+            <button id="calendarTabButton" class="tab-button text-sm sm:text-base">לוח שנה</button>
         </div>
 
         <div id="projectsView">
-            <div class="filters-container mb-6 card">
-                 <h3 class="text-lg font-semibold text-gray-700 mb-3">סינון ומיון פרויקטים:</h3>
-                <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
-                    <div class="filter-group">
-                        <label for="filterProjectText" class="text-sm font-medium text-gray-600">חיפוש בפרויקטים:</label>
-                        <input type="text" id="filterProjectText" class="rtl-form-input filter-item-input flex-grow px-3 py-1 border rounded-md shadow-sm border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+            <div class="filters-container mb-6 card p-2 sm:p-4">
+                 <h3 class="text-md sm:text-lg font-semibold text-gray-700 mb-2 sm:mb-3">סינון ומיון פרויקטים:</h3>
+                <div class="flex flex-wrap items-center gap-x-2 sm:gap-x-4 gap-y-2">
+                    <div class="filter-group w-full sm:w-auto">
+                        <label for="filterProjectText" class="text-xs sm:text-sm font-medium text-gray-600">חיפוש בפרויקטים:</label>
+                        <input type="text" id="filterProjectText" class="rtl-form-input filter-item-input flex-grow px-2 py-1 border rounded-md shadow-sm border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm">
                     </div>
-                    <div class="filter-group">
-                        <label for="filterProjectType" class="text-sm font-medium text-gray-600">סוג פרויקט:</label>
-                        <select id="filterProjectType" class="rtl-select filter-item-select flex-grow px-3 py-1 border rounded-md shadow-sm border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                    <div class="filter-group w-full sm:w-auto">
+                        <label for="filterProjectType" class="text-xs sm:text-sm font-medium text-gray-600">סוג פרויקט:</label>
+                        <select id="filterProjectType" class="rtl-select filter-item-select flex-grow px-2 py-1 border rounded-md shadow-sm border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm">
                             <option value="">הכל</option>
                         </select>
                     </div>
-                     <div class="filter-group">
-                        <label class="text-sm font-medium text-gray-600">סטטוס פרויקט:</label>
+                     <div class="filter-group w-full sm:w-auto">
+                        <label class="text-xs sm:text-sm font-medium text-gray-600">סטטוס פרויקט:</label>
                         <div id="filterProjectStatusCheckboxes" class="status-checkbox-group">
                         </div>
                     </div>
-                    <div class="filter-group">
-                        <label for="sortProjectsBy" class="text-sm font-medium text-gray-600">מיין פרויקטים לפי:</label>
-                        <select id="sortProjectsBy" class="rtl-select filter-item-select flex-grow px-3 py-1 border rounded-md shadow-sm border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                    <div class="filter-group w-full sm:w-auto">
+                        <label for="sortProjectsBy" class="text-xs sm:text-sm font-medium text-gray-600">מיין פרויקטים לפי:</label>
+                        <select id="sortProjectsBy" class="rtl-select filter-item-select flex-grow px-2 py-1 border rounded-md shadow-sm border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm">
                             <option value="name">שם פרויקט</option>
                             <option value="projectType">סוג פרויקט</option>
                             <option value="clientName">לקוח</option>
@@ -206,29 +223,29 @@
             </div>
 
             <div class="card overflow-x-auto mb-8">
-                <div class="flex justify-between items-center p-4 border-b border-gray-300">
-                    <h2 id="projectsListTitle" class="text-2xl font-semibold text-gray-700">רשימת פרויקטים</h2>
+                <div class="flex justify-between items-center p-2 sm:p-4 border-b border-gray-300">
+                    <h2 id="projectsListTitle" class="text-xl sm:text-2xl font-semibold text-gray-700">רשימת פרויקטים</h2>
                     <button id="openProjectModalButton" class="icon-button add-project-btn" title="הוסף פרויקט חדש">
                         +
                     </button>
                 </div>
                 <table class="min-w-full leading-normal rtl-table">
                     <thead>
-                        <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                            <th class="py-3 px-6 project-name-col">שם פרויקט</th>
-                            <th class="py-3 px-6">סוג</th>
-                            <th class="py-3 px-6">לקוח</th>
-                            <th class="py-3 px-6">מכשור</th>
-                            <th class="py-3 px-6">אביזרים</th>
-                            <th class="py-3 px-6 description-col">תיאור מוצר/שירות</th>
-                            <th class="py-3 px-6">ת. פתיחה</th>
-                            <th class="py-3 px-6">ת. יעד סיום</th>
-                            <th class="py-3 px-6 notes-col">הערות</th>
-                            <th class="py-3 px-6 project-status-col">סטטוס</th>
-                            <th class="py-3 px-6 actions-col">פעולות</th>
+                        <tr class="bg-gray-200 text-gray-600 uppercase text-xs sm:text-sm leading-normal">
+                            <th class="py-2 px-3 project-name-col">שם פרויקט</th>
+                            <th class="py-2 px-3">סוג</th>
+                            <th class="py-2 px-3">לקוח</th>
+                            <th class="py-2 px-3">מכשור</th>
+                            <th class="py-2 px-3">אביזרים</th>
+                            <th class="py-2 px-3 description-col">תיאור מוצר/שירות</th>
+                            <th class="py-2 px-3">ת. פתיחה</th>
+                            <th class="py-2 px-3">ת. יעד סיום</th>
+                            <th class="py-2 px-3 notes-col">הערות</th>
+                            <th class="py-2 px-3 project-status-col">סטטוס</th>
+                            <th class="py-2 px-3 actions-col">פעולות</th>
                         </tr>
                     </thead>
-                    <tbody id="projectsTableBody" class="text-gray-700 text-sm"></tbody>
+                    <tbody id="projectsTableBody" class="text-sm"></tbody>
                 </table>
             </div>
         </div>
@@ -240,25 +257,25 @@
                 </button>
             </div>
             <div class="card overflow-x-auto">
-                <h2 id="clientsListTitle" class="text-2xl font-semibold text-gray-700 p-4 border-b border-gray-300">רשימת לקוחות</h2>
+                <h2 id="clientsListTitle" class="text-xl sm:text-2xl font-semibold text-gray-700 p-4 border-b border-gray-300">רשימת לקוחות</h2>
                 <table class="min-w-full leading-normal rtl-table">
                     <thead>
-                        <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                            <th class="py-3 px-6">שם חברה</th>
-                            <th class="py-3 px-6">סוג לקוח</th>
-                            <th class="py-3 px-6">הערות</th>
-                            <th class="py-3 px-6 actions-col">פעולות</th>
+                        <tr class="bg-gray-200 text-gray-600 uppercase text-xs sm:text-sm leading-normal">
+                            <th class="py-2 px-3">שם חברה</th>
+                            <th class="py-2 px-3">סוג לקוח</th>
+                            <th class="py-2 px-3">הערות</th>
+                            <th class="py-2 px-3 actions-col">פעולות</th>
                         </tr>
                     </thead>
-                    <tbody id="clientsTableBody" class="text-gray-700 text-sm"></tbody>
+                    <tbody id="clientsTableBody" class="text-sm"></tbody>
                 </table>
             </div>
         </div>
 
 
         <div id="calendarView" class="hidden">
-            <div class="card p-4">
-                <h2 class="text-2xl font-semibold text-indigo-600 mb-4 text-center">לוח שנה - משימות</h2>
+            <div class="card p-2 sm:p-4">
+                <h2 class="text-xl sm:text-2xl font-semibold text-indigo-600 mb-4 text-center">לוח שנה - משימות</h2>
                 <div id="calendar"></div>
             </div>
         </div>
@@ -267,7 +284,7 @@
     <div id="tasksDisplayModal" class="tasks-display-modal">
         <div class="tasks-modal-content card">
             <div class="flex justify-between items-center pb-3 border-b mb-4 border-gray-300">
-                <h2 id="tasksForProjectTitle" class="text-2xl font-semibold text-gray-700">משימות עבור פרויקט: <span id="taskCountInTitle" class="text-lg text-gray-500"></span></h2>
+                <h2 id="tasksForProjectTitle" class="text-xl sm:text-2xl font-semibold text-gray-700">משימות עבור פרויקט: <span id="taskCountInTitle" class="text-lg text-gray-500"></span></h2>
                 <div class="flex items-center space-x-3 space-x-reverse"> 
                      <button id="openTaskModalButton" class="icon-button add-task-btn" title="הוסף משימה לפרויקט">
                         +
@@ -309,7 +326,7 @@
                                 <th class="py-3 px-6 actions-col">פעולות</th>
                             </tr>
                         </thead>
-                        <tbody id="tasksTableBody" class="text-gray-700 text-sm"></tbody>
+                        <tbody id="tasksTableBody" class="text-sm"></tbody>
                     </table>
                 </div>
             </div>
@@ -1687,8 +1704,7 @@
                     cancelEdit();
                 } else if (e.key === 'Enter') {
                     if (inputType === 'textarea') {
-                        // For textarea, Enter (with or without Shift) should create a new line.
-                        // Save will happen on blur.
+                        // Allow default Enter behavior (new line). Save on blur.
                         return; 
                     } else { 
                         e.preventDefault();
