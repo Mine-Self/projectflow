@@ -914,7 +914,7 @@
             return [
                 {id: 1, clientId: 1, branchName: "סניף מרכז", city: "תל אביב"},
                 {id: 2, clientId: 1, branchName: "סניף דרום", city: "באר שבע"},
-                {id: 3, clientId: 2, branchName: "ראשי", city: "חיפה"} // For single branch client
+                {id: 3, clientId: 2, branchName: "ראשי", city: "חיפה"} 
             ];
         }
         function getDefaultContacts() {
@@ -1074,7 +1074,15 @@
                 const actionsWrapper = document.createElement('div');
                 actionsWrapper.className = 'actions-cell-content'; 
 
-                // View tasks button removed as per request (row click handles this)
+                if (project.status !== 'הסתיים') {
+                    const completeProjectBtn = document.createElement('button');
+                    completeProjectBtn.innerHTML = '✔️'; 
+                    completeProjectBtn.title = 'סמן פרויקט כהסתיים';
+                    completeProjectBtn.className = 'text-green-500 hover:text-green-700 table-action-button';
+                    completeProjectBtn.onclick = (e) => { e.stopPropagation(); markProjectAsCompleted(project.id); };
+                    actionsWrapper.appendChild(completeProjectBtn);
+                }
+
 
                 const editButton = document.createElement('button');
                 editButton.innerHTML = '✏️'; editButton.title = 'ערוך פרויקט';
@@ -1095,6 +1103,18 @@
             updateCalendarEvents(); 
         }
         
+        function markProjectAsCompleted(projectId) {
+            const projectIndex = projects.findIndex(p => p.id === projectId);
+            if (projectIndex > -1) {
+                projects[projectIndex].status = 'הסתיים';
+                if (!projects[projectIndex].endDate) {
+                    projects[projectIndex].endDate = new Date().toISOString().split('T')[0];
+                }
+                renderProjectsTable();
+                saveDataToLocalStorage();
+            }
+        }
+
         function handleProjectCellClickForEditing(cell, projectId) {
             if (cell.querySelector('input, textarea, select')) {
                 const existingInput = cell.querySelector('input, textarea, select');
@@ -1251,32 +1271,31 @@
                 if (client) {
                     const clientBranches = branches.filter(b => b.clientId === selectedClientId);
                     if (client.isSingleBranch) {
-                        let mainBranch = clientBranches.find(b => b.branchName === "ראשי"); // Prioritize "ראשי"
+                        let mainBranch = clientBranches.find(b => b.branchName === "ראשי"); 
                         if (!mainBranch && clientBranches.length > 0) mainBranch = clientBranches[0]; 
                         
-                        if (!mainBranch) { // If no branch exists for a single-branch client, create a default "ראשי"
+                        if (!mainBranch) { 
                              mainBranch = {
                                 id: branches.length > 0 ? Math.max(...branches.map(b => b.id)) + 1 : 1,
                                 clientId: selectedClientId,
-                                branchName: "ראשי", // Default name for single branch
-                                city: client.city || '' // Use client's city if available
+                                branchName: "ראשי", 
+                                city: client.city || '' 
                             };
                             branches.push(mainBranch);
-                            saveDataToLocalStorage(); // Save new branch
+                            saveDataToLocalStorage(); 
                         }
                         
-                        // Populate and select the single/main branch (even if newly created)
                         projectBranchSelect.innerHTML = ''; 
                         const option = document.createElement('option');
                         option.value = mainBranch.id;
                         option.textContent = mainBranch.branchName;
                         projectBranchSelect.appendChild(option);
                         projectBranchSelect.value = mainBranch.id; 
-                        projectBranchContainer.style.display = 'none'; // Hide branch selection for single branch
-                        projectBranchSelect.dispatchEvent(new Event('change')); // Trigger contact population for this branch
-                        projectContactContainer.style.display = 'block'; // Show contacts directly
+                        projectBranchContainer.style.display = 'none'; 
+                        projectBranchSelect.dispatchEvent(new Event('change')); 
+                        projectContactContainer.style.display = 'block'; 
 
-                    } else if (clientBranches.length > 0) { // Multi-branch client with branches
+                    } else if (clientBranches.length > 0) { 
                         clientBranches.forEach(branch => {
                             const option = document.createElement('option');
                             option.value = branch.id;
@@ -1284,8 +1303,8 @@
                             projectBranchSelect.appendChild(option);
                         });
                         projectBranchContainer.style.display = 'block';
-                    } else { // Multi-branch client with NO branches yet
-                        projectBranchContainer.style.display = 'block'; // Show select, but it will be empty
+                    } else { 
+                        projectBranchContainer.style.display = 'block'; 
                         projectContactContainer.style.display = 'none';
                     }
                 }
@@ -1310,7 +1329,7 @@
                     });
                     projectContactContainer.style.display = 'block';
                 } else {
-                     projectContactContainer.style.display = 'block'; // Show even if empty, to allow adding
+                     projectContactContainer.style.display = 'block'; 
                 }
             }
         });
