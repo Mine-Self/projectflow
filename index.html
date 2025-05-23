@@ -14,13 +14,13 @@
             color: #1f2937; /* gray-800 */
         }
         .card { background-color: #ffffff; border: 1px solid #d1d5db; /* gray-300 */ }
-        .modal, .login-modal, .tasks-display-modal { 
+        .modal, .login-modal, .tasks-display-modal, .branches-modal, .contacts-modal { 
             display: none; position: fixed; z-index: 100; 
             left: 0; top: 0; width: 100%; height: 100%; 
             overflow: auto; background-color: rgba(0,0,0,0.6); 
             padding-top: 20px;
         }
-        .modal-content, .login-modal-content, .tasks-modal-content { 
+        .modal-content, .login-modal-content, .tasks-modal-content, .branches-modal-content, .contacts-modal-content { 
             background-color: #fefefe; margin: 2% auto; padding: 20px; 
             border: 1px solid #d1d5db; /* gray-300 */
             width: 90%; 
@@ -30,13 +30,13 @@
         .login-modal { display: flex; align-items: center; justify-content: center; padding-top: 0;}
         .login-modal-content { margin: auto; max-width: 500px; }
         .modal-content { max-width: 700px; } 
-        .tasks-modal-content { 
+        .tasks-modal-content, .branches-modal-content, .contacts-modal-content { 
             max-width: 950px; 
             max-height: 90vh; 
             display: flex;
             flex-direction: column;
         }
-        .tasks-modal-body {
+        .tasks-modal-body, .branches-modal-body, .contacts-modal-body {
             overflow-y: auto; 
             flex-grow: 1;
         }
@@ -67,6 +67,7 @@
         .rtl-table th.task-date-col, .rtl-table td.task-date-col { min-width: 100px; cursor: pointer; }
         .rtl-table th.task-status-col, .rtl-table td.task-status-col { min-width: 100px; cursor: pointer; }
         .rtl-table th.project-status-col, .rtl-table td.project-status-col { min-width: 100px; cursor: pointer; }
+        .rtl-table tr.clickable-row:hover { background-color: #f0f4f8; cursor: pointer; }
 
 
         .rtl-table th.actions-col, .rtl-table td.actions-col { min-width: 35px; }
@@ -88,7 +89,7 @@
         .fc-header-toolbar { direction: rtl; }
         .fc-toolbar-chunk:first-child { order: 3; } .fc-toolbar-chunk:nth-child(2) { order: 2; } .fc-toolbar-chunk:last-child { order: 1; } 
         .fc-event-main { direction: rtl; text-align: right;}
-        #appContainer, #clientsView, #calendarView { display: none; } /* Initially hide all views except login */
+        #appContainer, #clientsView, #calendarView { display: none; } 
         .project-row.selected { background-color: #E0E7FF !important; } 
         .tab-button { padding: 0.5rem 1rem; border-radius: 0.375rem 0.375rem 0 0; background-color: #E5E7EB; border: 1px solid #D1D5DB; border-bottom: none; cursor: pointer; color: #4b5563; }
         .tab-button.active { background-color: #ffffff; border-bottom-color: #ffffff; color: #1f2937; font-weight: 600; }
@@ -110,8 +111,8 @@
         }
         .icon-button:hover { transform: translateY(-1px); }
         .icon-button:active { transform: translateY(0px); }
-        .add-project-btn, .add-client-btn { background-color: #10B981; } 
-        .add-project-btn:hover, .add-client-btn:hover { background-color: #059669; }
+        .add-project-btn, .add-client-btn, .add-branch-btn, .add-contact-btn { background-color: #10B981; } 
+        .add-project-btn:hover, .add-client-btn:hover, .add-branch-btn:hover, .add-contact-btn:hover { background-color: #059669; }
         .add-task-btn { background-color: #4F46E5; } .add-task-btn:hover { background-color: #4338CA; }
         
         .close-tasks-modal-icon-btn { 
@@ -136,6 +137,8 @@
 
         .inline-edit-input { width: 100%; box-sizing: border-box; padding: 0.25rem; border: 1px solid #4F46E5; border-radius: 0.25rem; font-size: 0.875rem; background-color: #ffffff; color: #1f2937;}
         .inline-edit-textarea { width: 100%; box-sizing: border-box; padding: 0.25rem; border: 1px solid #4F46E5; border-radius: 0.25rem; font-size: 0.875rem; min-height: 50px; resize: vertical; background-color: #ffffff; color: #1f2937;}
+        .contact-action-icon { font-size: 0.9rem; margin-right: 0.25rem; color: #4F46E5; cursor:pointer; }
+        .contact-action-icon:hover { color: #4338CA; }
 
     </style>
 </head>
@@ -230,7 +233,7 @@
             </div>
         </div>
 
-        <div id="clientsView" class="hidden">
+        <div id="clientsView"> 
             <div class="mb-4 text-left">
                 <button id="openClientModalButton" class="icon-button add-client-btn" title="הוסף לקוח חדש">
                     +
@@ -241,11 +244,8 @@
                 <table class="min-w-full leading-normal rtl-table">
                     <thead>
                         <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                            <th class="py-3 px-6">שם לקוח/חברה</th>
-                            <th class="py-3 px-6">איש קשר</th>
-                            <th class="py-3 px-6">טלפון</th>
-                            <th class="py-3 px-6">מייל</th>
-                            <th class="py-3 px-6">עיר</th>
+                            <th class="py-3 px-6">שם חברה</th>
+                            <th class="py-3 px-6">סוג לקוח</th>
                             <th class="py-3 px-6">הערות</th>
                             <th class="py-3 px-6 actions-col">פעולות</th>
                         </tr>
@@ -329,11 +329,31 @@
                 </div>
                 <div>
                     <label for="projectType" class="block text-sm font-medium text-gray-600 mb-1">סוג הפרויקט:</label>
-                    <select id="projectType" class="rtl-select mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"></select>
+                    <select id="projectType" class="rtl-select mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" required>
+                        <option value="">-- בחר סוג פרויקט --</option>
+                    </select>
                 </div>
-                <div>
-                    <label for="projectClientName" class="block text-sm font-medium text-gray-600 mb-1">שם לקוח:</label>
-                    <input type="text" id="projectClientName" class="rtl-form-input mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                <div> 
+                    <label for="projectClientSelect" class="block text-sm font-medium text-gray-600 mb-1">לקוח:</label>
+                    <select id="projectClientSelect" class="rtl-select mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">בחר לקוח...</option>
+                    </select>
+                </div>
+                 <div id="projectBranchContainer" style="display:none;">
+                    <label for="projectBranchSelect" class="block text-sm font-medium text-gray-600 mb-1">סניף:</label>
+                    <select id="projectBranchSelect" class="rtl-select mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">בחר סניף...</option>
+                    </select>
+                </div>
+                <div id="projectContactContainer" style="display:none;">
+                    <label for="projectContactSelect" class="block text-sm font-medium text-gray-600 mb-1">איש קשר:</label>
+                    <select id="projectContactSelect" class="rtl-select mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">בחר איש קשר...</option>
+                    </select>
+                </div>
+                <div id="projectSelectedContactDetails" class="md:col-span-2 mt-2 p-2 border border-gray-200 rounded bg-gray-50" style="display:none;">
+                    <p class="text-sm"><span class="font-medium">טלפון איש קשר:</span> <span id="projectSelectedContactPhone"></span></p>
+                    <p class="text-sm"><span class="font-medium">מייל איש קשר:</span> <span id="projectSelectedContactEmail"></span></p>
                 </div>
                 <div>
                     <label for="projectDevices" class="block text-sm font-medium text-gray-600 mb-1">מכשור:</label>
@@ -424,6 +444,14 @@
                     <label for="clientNameModal" class="block text-sm font-medium text-gray-600 mb-1">שם לקוח/חברה (חובה):</label>
                     <input type="text" id="clientNameModal" class="rtl-form-input mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" required>
                 </div>
+                 <div>
+                    <label for="clientTypeModal" class="block text-sm font-medium text-gray-600 mb-1">סוג לקוח:</label>
+                    <select id="clientTypeModal" class="rtl-select mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"></select>
+                </div>
+                 <div class="md:col-span-2 flex items-center">
+                    <input type="checkbox" id="clientIsSingleBranchModal" name="clientIsSingleBranchModal" class="ml-2 h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                    <label for="clientIsSingleBranchModal" class="text-sm font-medium text-gray-600">ללקוח זה יש סניף יחיד</label>
+                </div>
                 <div>
                     <label for="clientContactPersonModal" class="block text-sm font-medium text-gray-600 mb-1">איש קשר ראשי:</label>
                     <input type="text" id="clientContactPersonModal" class="rtl-form-input mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
@@ -447,6 +475,117 @@
                 <div class="md:col-span-2 flex items-center justify-end pt-4 border-t mt-4 border-gray-300">
                     <button type="button" id="cancelClientButton" class="font-semibold py-2 px-4 rounded-lg ml-2 bg-gray-200 hover:bg-gray-300 text-gray-800">ביטול</button>
                     <button type="submit" class="font-semibold py-2 px-4 rounded-lg shadow-md bg-indigo-600 hover:bg-indigo-700 text-white">שמור לקוח</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+     <div id="branchesModal" class="tasks-display-modal"> <div class="tasks-modal-content card">
+            <div class="flex justify-between items-center pb-3 border-b mb-4 border-gray-300">
+                <h2 id="branchesModalTitle" class="text-2xl font-semibold text-gray-700">סניפים עבור: </h2>
+                <div class="flex items-center space-x-3 space-x-reverse">
+                    <button id="openBranchAddModalButton" class="icon-button add-branch-btn" title="הוסף סניף חדש">
+                        +
+                    </button>
+                    <button id="closeBranchesModalButton" class="close-tasks-modal-icon-btn" title="סגור חלון סניפים">&times;</button>
+                </div>
+            </div>
+            <div class="tasks-modal-body">
+                <div class="card overflow-x-auto">
+                    <table class="min-w-full leading-normal rtl-table">
+                        <thead>
+                            <tr class="bg-gray-100 text-gray-600 uppercase text-xs leading-normal">
+                                <th class="py-3 px-6">שם סניף</th>
+                                <th class="py-3 px-6">עיר</th>
+                                <th class="py-3 px-6 actions-col">פעולות</th>
+                            </tr>
+                        </thead>
+                        <tbody id="branchesTableBody" class="text-gray-700 text-sm"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="branchModal" class="modal">
+        <div class="modal-content !max-w-md card">
+            <span id="closeBranchModal" class="close-button">&times;</span>
+            <h2 id="branchModalTitle" class="text-xl font-semibold text-indigo-600 mb-4">הוסף סניף</h2>
+            <form id="branchForm">
+                <input type="hidden" id="branchId">
+                <input type="hidden" id="branchClientId"> 
+                <div class="mb-4">
+                    <label for="branchNameModal" class="block text-sm font-medium text-gray-600 mb-1">שם סניף (חובה):</label>
+                    <input type="text" id="branchNameModal" class="rtl-form-input mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" required>
+                </div>
+                <div class="mb-4">
+                    <label for="branchCityModal" class="block text-sm font-medium text-gray-600 mb-1">עיר:</label>
+                    <input type="text" id="branchCityModal" class="rtl-form-input mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+                <div class="flex items-center justify-end pt-4 border-t border-gray-300">
+                    <button type="button" id="cancelBranchButton" class="font-semibold py-2 px-4 rounded-lg ml-2 bg-gray-200 hover:bg-gray-300 text-gray-800">ביטול</button>
+                    <button type="submit" class="font-semibold py-2 px-4 rounded-lg shadow-md bg-indigo-600 hover:bg-indigo-700 text-white">שמור סניף</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="contactsModal" class="tasks-display-modal">
+        <div class="tasks-modal-content card">
+            <div class="flex justify-between items-center pb-3 border-b mb-4 border-gray-300">
+                <h2 id="contactsModalTitle" class="text-2xl font-semibold text-gray-700">אנשי קשר עבור: </h2>
+                 <div class="flex items-center space-x-3 space-x-reverse">
+                    <button id="openContactAddModalButton" class="icon-button add-contact-btn" title="הוסף איש קשר">
+                        +
+                    </button>
+                    <button id="closeContactsModalButton" class="close-tasks-modal-icon-btn" title="סגור חלון אנשי קשר">&times;</button>
+                </div>
+            </div>
+            <div class="tasks-modal-body">
+                <div class="card overflow-x-auto">
+                    <table class="min-w-full leading-normal rtl-table">
+                        <thead>
+                            <tr class="bg-gray-100 text-gray-600 uppercase text-xs leading-normal">
+                                <th class="py-3 px-6">שם איש קשר</th>
+                                <th class="py-3 px-6">תפקיד</th>
+                                <th class="py-3 px-6">טלפון</th>
+                                <th class="py-3 px-6">מייל</th>
+                                <th class="py-3 px-6 actions-col">פעולות</th>
+                            </tr>
+                        </thead>
+                        <tbody id="contactsTableBody" class="text-gray-700 text-sm"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="contactModal" class="modal">
+        <div class="modal-content !max-w-md card">
+            <span id="closeContactModal" class="close-button">&times;</span>
+            <h2 id="contactModalTitle" class="text-xl font-semibold text-indigo-600 mb-4">הוסף איש קשר</h2>
+            <form id="contactForm">
+                <input type="hidden" id="contactId">
+                <input type="hidden" id="contactBranchId">
+                <div class="mb-4">
+                    <label for="contactNameModal" class="block text-sm font-medium text-gray-600 mb-1">שם (חובה):</label>
+                    <input type="text" id="contactNameModal" class="rtl-form-input mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" required>
+                </div>
+                 <div class="mb-4">
+                    <label for="contactRoleModal" class="block text-sm font-medium text-gray-600 mb-1">תפקיד:</label>
+                    <input type="text" id="contactRoleModal" class="rtl-form-input mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+                <div class="mb-4">
+                    <label for="contactPhoneModal" class="block text-sm font-medium text-gray-600 mb-1">טלפון:</label>
+                    <input type="tel" id="contactPhoneModal" class="rtl-form-input mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+                <div class="mb-4">
+                    <label for="contactEmailModal" class="block text-sm font-medium text-gray-600 mb-1">מייל:</label>
+                    <input type="email" id="contactEmailModal" class="rtl-form-input mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+                <div class="flex items-center justify-end pt-4 border-t border-gray-300">
+                    <button type="button" id="cancelContactButton" class="font-semibold py-2 px-4 rounded-lg ml-2 bg-gray-200 hover:bg-gray-300 text-gray-800">ביטול</button>
+                    <button type="submit" class="font-semibold py-2 px-4 rounded-lg shadow-md bg-indigo-600 hover:bg-indigo-700 text-white">שמור איש קשר</button>
                 </div>
             </form>
         </div>
@@ -481,6 +620,15 @@
         const closeProjectModalButton = document.getElementById('closeProjectModal');
         const cancelProjectButton = document.getElementById('cancelProjectButton');
         const projectIdInput = document.getElementById('projectId');
+        const projectClientSelect = document.getElementById('projectClientSelect');
+        const projectBranchContainer = document.getElementById('projectBranchContainer');
+        const projectBranchSelect = document.getElementById('projectBranchSelect');
+        const projectContactContainer = document.getElementById('projectContactContainer');
+        const projectContactSelect = document.getElementById('projectContactSelect');
+        const projectSelectedContactDetailsDiv = document.getElementById('projectSelectedContactDetails');
+        const projectSelectedContactPhoneSpan = document.getElementById('projectSelectedContactPhone');
+        const projectSelectedContactEmailSpan = document.getElementById('projectSelectedContactEmail');
+
         
         const filterProjectTextInput = document.getElementById('filterProjectText');
         const filterProjectTypeSelect = document.getElementById('filterProjectType');
@@ -496,6 +644,35 @@
         const closeClientModalButton = document.getElementById('closeClientModal');
         const cancelClientButton = document.getElementById('cancelClientButton');
         const clientIdInput = document.getElementById('clientId');
+        const clientTypeModalSelect = document.getElementById('clientTypeModal');
+        const clientIsSingleBranchModalCheckbox = document.getElementById('clientIsSingleBranchModal');
+
+
+        const branchesModal = document.getElementById('branchesModal');
+        const branchesModalTitle = document.getElementById('branchesModalTitle');
+        const branchesTableBody = document.getElementById('branchesTableBody');
+        const openBranchAddModalButton = document.getElementById('openBranchAddModalButton');
+        const closeBranchesModalButton = document.getElementById('closeBranchesModalButton');
+        const branchModal = document.getElementById('branchModal');
+        const branchForm = document.getElementById('branchForm');
+        const branchModalTitle = document.getElementById('branchModalTitle');
+        const closeBranchModalButton = document.getElementById('closeBranchModal');
+        const cancelBranchButton = document.getElementById('cancelBranchButton');
+        const branchIdInput = document.getElementById('branchId');
+        const branchClientIdInput = document.getElementById('branchClientId');
+
+        const contactsModal = document.getElementById('contactsModal');
+        const contactsModalTitle = document.getElementById('contactsModalTitle');
+        const contactsTableBody = document.getElementById('contactsTableBody');
+        const openContactAddModalButton = document.getElementById('openContactAddModalButton');
+        const closeContactsModalButton = document.getElementById('closeContactsModalButton');
+        const contactModal = document.getElementById('contactModal');
+        const contactForm = document.getElementById('contactForm');
+        const contactModalTitle = document.getElementById('contactModalTitle');
+        const closeContactModalButton = document.getElementById('closeContactModal');
+        const cancelContactButton = document.getElementById('cancelContactButton');
+        const contactIdInput = document.getElementById('contactId');
+        const contactBranchIdInput = document.getElementById('contactBranchId');
 
 
         const tasksDisplayModal = document.getElementById('tasksDisplayModal'); 
@@ -521,13 +698,19 @@
         // Data
         let projects = [];
         let tasks = [];
-        let clients = []; // New data array for clients
+        let clients = []; 
+        let branches = [];
+        let contacts = [];
         let calendar;
         let selectedProjectId = null;
+        let selectedClientIdForBranches = null; 
+        let selectedBranchIdForContacts = null; 
+
         const ALLOWED_EMAILS = ['mualex1970@gmail.com', 'alexmu14@gmail.com'];
         const PROJECT_TYPES = ['אבלואציה', 'מכרז', 'דוגמא', 'אחר', 'לרדוף אחרי לקוח', 'תעודות', 'הצעת מחיר', 'תקלה', 'הזמנה', 'פתיחת מק"ט', 'הדרכות'];
         const TASK_STATUSES = ['חדש', 'בתהליך', 'הושלם', 'בהמתנה', 'בוטל'];
         const PROJECT_STATUSES = ['חדש', 'בתהליך', 'בהמתנה', 'הסתיים', 'בוטל'];
+        const CLIENT_TYPES = ['בית חולים ציבורי/ממשלתי', 'בית חולים פרטי', 'מרפאה פרטית', 'מרפאה של קופת חולים', 'דילר'];
 
         // --- Authentication ---
         function checkLogin() { 
@@ -555,7 +738,7 @@
         });
         logoutButton.addEventListener('click', () => { 
             sessionStorage.removeItem('loggedInUser');
-            projects = []; tasks = []; clients = []; selectedProjectId = null;
+            projects = []; tasks = []; clients = []; branches = []; contacts = []; selectedProjectId = null;
             if(calendar) calendar.removeAllEvents();
             checkLogin();
         });
@@ -579,7 +762,7 @@
             } else if (tabName === 'clients') {
                 clientsView.style.display = 'block';
                 clientsTabButton.classList.add('active');
-                renderClientsTable(); // Render clients when tab is active
+                renderClientsTable(); 
             } else if (tabName === 'calendar') {
                 calendarView.style.display = 'block';
                 calendarTabButton.classList.add('active');
@@ -595,11 +778,11 @@
         function initializePage() {
             loadDataFromLocalStorage();
             populateProjectTypes();
+            populateClientTypes(); 
             populateProjectStatusFilterCheckboxes(); 
             populateTaskStatusCheckboxes(); 
             initializeCalendar();
             renderProjectsTable(); 
-            // renderClientsTable(); // Moved to switchTab for clients
             selectedProjectId = null; 
             tasksDisplayModal.style.display = 'none'; 
             switchTab('projects'); 
@@ -607,7 +790,7 @@
         
         function populateProjectTypes() {
             const projectTypeModalSelect = document.getElementById('projectType');
-            projectTypeModalSelect.innerHTML = ''; 
+            projectTypeModalSelect.innerHTML = '<option value="">-- בחר סוג פרויקט --</option>'; 
             PROJECT_TYPES.forEach(type => {
                 const option = document.createElement('option');
                 option.value = type;
@@ -620,10 +803,21 @@
              PROJECT_TYPES.forEach(type => {
                 const option = document.createElement('option');
                 option.value = type;
-                option.textContent = type; // Count will be added in renderProjectsTable
+                option.textContent = type; 
                 projectTypeFilterSelect.appendChild(option);
             });
         }
+        
+        function populateClientTypes() {
+            clientTypeModalSelect.innerHTML = '';
+            CLIENT_TYPES.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                clientTypeModalSelect.appendChild(option);
+            });
+        }
+
 
         function populateProjectStatusFilterCheckboxes() {
             filterProjectStatusCheckboxesContainer.innerHTML = '';
@@ -683,18 +877,24 @@
             tasks = storedTasks ? JSON.parse(storedTasks) : getDefaultTasks();
             const storedClients = localStorage.getItem('clients');
             clients = storedClients ? JSON.parse(storedClients) : getDefaultClients();
+            const storedBranches = localStorage.getItem('branches');
+            branches = storedBranches ? JSON.parse(storedBranches) : getDefaultBranches();
+            const storedContacts = localStorage.getItem('contacts');
+            contacts = storedContacts ? JSON.parse(storedContacts) : getDefaultContacts();
         }
 
         function saveDataToLocalStorage() {
             localStorage.setItem('projects', JSON.stringify(projects));
             localStorage.setItem('tasks', JSON.stringify(tasks));
             localStorage.setItem('clients', JSON.stringify(clients));
+            localStorage.setItem('branches', JSON.stringify(branches));
+            localStorage.setItem('contacts', JSON.stringify(contacts));
         }
         
         function getDefaultProjects() {
             return [
-                {id: 1, name: 'פרויקט אתר שיווקי גדול', projectType: 'מכרז', clientName: 'לקוח אלפא', devices: 'שרתים, מחשבים', accessories: 'מקלדות', productDescription: 'הקמת אתר תדמית ושיווק לחברה גדולה עם דגש על עיצוב מודרני וחווית משתמש מיטבית, כולל אופטימיזציה למנועי חיפוש.', startDate: '2024-01-15', endDate: '2024-08-30', notes: 'דגש על SEO ונגישות. יש לבצע בדיקות מקיפות לפני ההשקה. פגישת סטטוס שבועית עם הלקוח בימי שני.', status: 'בתהליך'},
-                {id: 2, name: 'אפליקציית ניהול מלאי', projectType: 'הזמנה', clientName: 'לקוח בטא בע"מ', devices: 'סורקי ברקוד ניידים, טאבלטים', accessories: 'מדבקות ברקוד, מטענים', productDescription: 'פיתוח אפליקציה לניהול מלאי מחסן עבור רשת חנויות קמעונאיות. המערכת תאפשר מעקב בזמן אמת אחר פריטים.', startDate: '2024-03-01', endDate: '', notes: 'כולל אינטגרציה למערכת ERP קיימת של הלקוח. נדרשת הדרכה לצוות המחסן לאחר הפיתוח.', status: 'חדש'}
+                {id: 1, name: 'פרויקט אתר שיווקי גדול', projectType: 'מכרז', clientId: 1, clientName: 'לקוח אלפא בע"מ', branchId: 1, contactId: 1, devices: 'שרתים, מחשבים', accessories: 'מקלדות', productDescription: 'הקמת אתר תדמית ושיווק לחברה גדולה עם דגש על עיצוב מודרני וחווית משתמש מיטבית, כולל אופטימיזציה למנועי חיפוש.', startDate: '2024-01-15', endDate: '2024-08-30', notes: 'דגש על SEO ונגישות. יש לבצע בדיקות מקיפות לפני ההשקה. פגישת סטטוס שבועית עם הלקוח בימי שני.', status: 'בתהליך'},
+                {id: 2, name: 'אפליקציית ניהול מלאי', projectType: 'הזמנה', clientId: 2, clientName: 'מרפאת הכוכב', branchId: 3, contactId: 3, devices: 'סורקי ברקוד ניידים, טאבלטים', accessories: 'מדבקות ברקוד, מטענים', productDescription: 'פיתוח אפליקציה לניהול מלאי מחסן עבור רשת חנויות קמעונאיות. המערכת תאפשר מעקב בזמן אמת אחר פריטים.', startDate: '2024-03-01', endDate: '', notes: 'כולל אינטגרציה למערכת ERP קיימת של הלקוח. נדרשת הדרכה לצוות המחסן לאחר הפיתוח.', status: 'חדש'}
             ];
         }
         function getDefaultTasks() { 
@@ -706,8 +906,22 @@
         }
         function getDefaultClients() {
             return [
-                {id: 1, clientName: 'לקוח אלפא', contactPerson: 'ישראל ישראלי', phone: '050-1234567', email: 'israel@alpha.com', city: 'תל אביב', notes: 'לקוח ותיק, חשוב מאוד.'},
-                {id: 2, clientName: 'לקוח בטא בע"מ', contactPerson: 'דנה כהן', phone: '052-7654321', email: 'dana@beta.co.il', city: 'חיפה', notes: 'פוטנציאל גדול להרחבת שירותים.'}
+                {id: 1, companyName: 'לקוח אלפא בע"מ', clientType: 'בית חולים פרטי', notes: 'לקוח ותיק, חשוב מאוד.', isSingleBranch: false},
+                {id: 2, companyName: 'מרפאת הכוכב', clientType: 'מרפאה פרטית', notes: 'פוטנציאל גדול להרחבת שירותים.', isSingleBranch: true}
+            ];
+        }
+        function getDefaultBranches() {
+            return [
+                {id: 1, clientId: 1, branchName: "סניף מרכז", city: "תל אביב"},
+                {id: 2, clientId: 1, branchName: "סניף דרום", city: "באר שבע"},
+                {id: 3, clientId: 2, branchName: "ראשי", city: "חיפה"} // For single branch client
+            ];
+        }
+        function getDefaultContacts() {
+            return [
+                {id: 1, branchId: 1, contactName: "משה כהן", role: "מנהל רכש", phone: "050-1112222", email: "moshe@alpha.com"},
+                {id: 2, branchId: 1, contactName: "שרה לוי", role: "מזכירה רפואית", phone: "050-3334444", email: "sara@alpha.com"},
+                {id: 3, branchId: 3, contactName: "דוד ישראלי", role: "רופא ראשי", phone: "052-5556666", email: "david@kochav.co.il"}
             ];
         }
 
@@ -786,7 +1000,7 @@
             if (projectTextFilter) {
                 filteredProjects = filteredProjects.filter(p => 
                     (p.name && p.name.toLowerCase().includes(projectTextFilter)) ||
-                    (p.clientName && p.clientName.toLowerCase().includes(projectTextFilter)) ||
+                    (p.clientName && p.clientName.toLowerCase().includes(projectTextFilter)) || 
                     (p.devices && p.devices.toLowerCase().includes(projectTextFilter)) ||
                     (p.accessories && p.accessories.toLowerCase().includes(projectTextFilter)) ||
                     (p.productDescription && p.productDescription.toLowerCase().includes(projectTextFilter)) ||
@@ -809,7 +1023,14 @@
                     valB = valB ? new Date(valB) : new Date(0);
                     return valA - valB;
                 }
-                return valA.toString().toLowerCase().localeCompare(valB.toString().toLowerCase());
+                 if (sortProjectsKey === 'clientName') { 
+                    valA = (a.clientName || '').toString().toLowerCase();
+                    valB = (b.clientName || '').toString().toLowerCase();
+                } else {
+                    valA = (valA || '').toString().toLowerCase();
+                    valB = (valB || '').toString().toLowerCase();
+                }
+                return valA.localeCompare(valB);
             });
 
             projectsListTitle.textContent = `רשימת פרויקטים (${filteredProjects.length})`;
@@ -823,7 +1044,8 @@
                 
                 let cell = row.insertCell(); cell.textContent = project.name || '-'; cell.classList.add('project-name-col');
                 row.insertCell().textContent = project.projectType || '-';
-                row.insertCell().textContent = project.clientName || '-';
+                const clientForDisplay = clients.find(c => c.id === project.clientId);
+                row.insertCell().textContent = clientForDisplay ? clientForDisplay.companyName : (project.clientName || '-'); 
                 row.insertCell().textContent = project.devices || '-';
                 row.insertCell().textContent = project.accessories || '-';
                 cell = row.insertCell(); cell.textContent = project.productDescription || '-'; cell.classList.add('description-col');
@@ -852,11 +1074,7 @@
                 const actionsWrapper = document.createElement('div');
                 actionsWrapper.className = 'actions-cell-content'; 
 
-                const viewTasksButton = document.createElement('button');
-                viewTasksButton.innerHTML = '👁️'; viewTasksButton.title = 'הצג משימות';
-                viewTasksButton.className = 'text-blue-500 hover:text-blue-700 table-action-button';
-                viewTasksButton.onclick = (e) => { e.stopPropagation(); displayTasksForProject(project.id); };
-                actionsWrapper.appendChild(viewTasksButton);
+                // View tasks button removed as per request (row click handles this)
 
                 const editButton = document.createElement('button');
                 editButton.innerHTML = '✏️'; editButton.title = 'ערוך פרויקט';
@@ -933,11 +1151,11 @@
                          renderProjectsTable(); 
                     } else {
                         cell.innerHTML = originalContentHTML; 
-                        cell.onclick = (e) => { e.stopPropagation(); handleProjectCellClickForEditing(cell, projectId);};
+                        cell.onclick = (e) => { e.stopPropagation(); handleCellClickForEditing(cell, projectId, 'project');};
                     }
                 } else {
                      cell.innerHTML = originalContentHTML; 
-                     cell.onclick = (e) => { e.stopPropagation(); handleProjectCellClickForEditing(cell, projectId);};
+                     cell.onclick = (e) => { e.stopPropagation(); handleCellClickForEditing(cell, projectId, 'project');};
                 }
             };
             
@@ -958,12 +1176,20 @@
         function openProjectModal(projectToEdit = null) {
             projectForm.reset();
             projectIdInput.value = '';
+            populateProjectClientSelect(projectToEdit ? projectToEdit.clientId : null); 
+            projectBranchContainer.style.display = 'none';
+            projectContactContainer.style.display = 'none';
+            projectSelectedContactDetailsDiv.style.display = 'none';
+            
+            const projectTypeSelect = document.getElementById('projectType');
+            projectTypeSelect.value = ""; 
+
             if (projectToEdit) {
                 projectModalTitle.textContent = 'ערוך פרויקט';
                 projectIdInput.value = projectToEdit.id;
                 document.getElementById('projectName').value = projectToEdit.name;
-                document.getElementById('projectType').value = projectToEdit.projectType;
-                document.getElementById('projectClientName').value = projectToEdit.clientName || '';
+                projectTypeSelect.value = projectToEdit.projectType || ""; 
+                
                 document.getElementById('projectDevices').value = projectToEdit.devices || '';
                 document.getElementById('projectAccessories').value = projectToEdit.accessories || '';
                 document.getElementById('projectProductDescription').value = projectToEdit.productDescription || '';
@@ -971,22 +1197,158 @@
                 document.getElementById('projectEndDate').value = projectToEdit.endDate || '';
                 document.getElementById('projectStatus').value = projectToEdit.status || 'חדש';
                 document.getElementById('projectNotes').value = projectToEdit.notes || '';
+                
+                if (projectToEdit.clientId) {
+                    projectClientSelect.value = projectToEdit.clientId; 
+                    projectClientSelect.dispatchEvent(new Event('change')); 
+                    setTimeout(() => { 
+                        if (projectToEdit.branchId) {
+                            projectBranchSelect.value = projectToEdit.branchId;
+                            projectBranchSelect.dispatchEvent(new Event('change')); 
+                             setTimeout(() => { 
+                                if (projectToEdit.contactId) {
+                                    projectContactSelect.value = projectToEdit.contactId;
+                                    projectContactSelect.dispatchEvent(new Event('change')); 
+                                }
+                            }, 50); 
+                        }
+                    }, 50); 
+                }
+
+
             } else {
                 projectModalTitle.textContent = 'הוסף פרויקט חדש';
                 document.getElementById('projectStatus').value = 'חדש'; 
+                document.getElementById('projectStartDate').value = new Date().toISOString().split('T')[0]; 
             }
             projectModal.style.display = 'block';
         }
+
+        function populateProjectClientSelect(selectedClientId = null) {
+            projectClientSelect.innerHTML = '<option value="">-- בחר לקוח --</option>';
+            clients.sort((a,b) => (a.companyName || "").localeCompare(b.companyName || "")).forEach(client => {
+                const option = document.createElement('option');
+                option.value = client.id;
+                option.textContent = client.companyName;
+                if (selectedClientId && client.id === selectedClientId) {
+                    option.selected = true;
+                }
+                projectClientSelect.appendChild(option);
+            });
+        }
+        
+        projectClientSelect.addEventListener('change', () => {
+            const selectedClientId = parseInt(projectClientSelect.value);
+            projectBranchSelect.innerHTML = '<option value="">-- בחר סניף --</option>';
+            projectContactSelect.innerHTML = '<option value="">-- בחר איש קשר --</option>';
+            projectBranchContainer.style.display = 'none';
+            projectContactContainer.style.display = 'none';
+            projectSelectedContactDetailsDiv.style.display = 'none';
+
+
+            if (selectedClientId) {
+                const client = clients.find(c => c.id === selectedClientId);
+                if (client) {
+                    const clientBranches = branches.filter(b => b.clientId === selectedClientId);
+                    if (client.isSingleBranch) {
+                        let mainBranch = clientBranches.find(b => b.branchName === "ראשי"); // Prioritize "ראשי"
+                        if (!mainBranch && clientBranches.length > 0) mainBranch = clientBranches[0]; 
+                        
+                        if (!mainBranch) { // If no branch exists for a single-branch client, create a default "ראשי"
+                             mainBranch = {
+                                id: branches.length > 0 ? Math.max(...branches.map(b => b.id)) + 1 : 1,
+                                clientId: selectedClientId,
+                                branchName: "ראשי", // Default name for single branch
+                                city: client.city || '' // Use client's city if available
+                            };
+                            branches.push(mainBranch);
+                            saveDataToLocalStorage(); // Save new branch
+                        }
+                        
+                        // Populate and select the single/main branch (even if newly created)
+                        projectBranchSelect.innerHTML = ''; 
+                        const option = document.createElement('option');
+                        option.value = mainBranch.id;
+                        option.textContent = mainBranch.branchName;
+                        projectBranchSelect.appendChild(option);
+                        projectBranchSelect.value = mainBranch.id; 
+                        projectBranchContainer.style.display = 'none'; // Hide branch selection for single branch
+                        projectBranchSelect.dispatchEvent(new Event('change')); // Trigger contact population for this branch
+                        projectContactContainer.style.display = 'block'; // Show contacts directly
+
+                    } else if (clientBranches.length > 0) { // Multi-branch client with branches
+                        clientBranches.forEach(branch => {
+                            const option = document.createElement('option');
+                            option.value = branch.id;
+                            option.textContent = branch.branchName;
+                            projectBranchSelect.appendChild(option);
+                        });
+                        projectBranchContainer.style.display = 'block';
+                    } else { // Multi-branch client with NO branches yet
+                        projectBranchContainer.style.display = 'block'; // Show select, but it will be empty
+                        projectContactContainer.style.display = 'none';
+                    }
+                }
+            }
+        });
+
+        projectBranchSelect.addEventListener('change', () => {
+            const selectedBranchId = parseInt(projectBranchSelect.value);
+            projectContactSelect.innerHTML = '<option value="">-- בחר איש קשר --</option>';
+            projectContactContainer.style.display = 'none';
+            projectSelectedContactDetailsDiv.style.display = 'none';
+
+
+            if (selectedBranchId) {
+                const branchContacts = contacts.filter(c => c.branchId === selectedBranchId);
+                if (branchContacts.length > 0) {
+                    branchContacts.forEach(contact => {
+                        const option = document.createElement('option');
+                        option.value = contact.id;
+                        option.textContent = `${contact.contactName} (${contact.role || 'תפקיד לא צוין'})`;
+                        projectContactSelect.appendChild(option);
+                    });
+                    projectContactContainer.style.display = 'block';
+                } else {
+                     projectContactContainer.style.display = 'block'; // Show even if empty, to allow adding
+                }
+            }
+        });
+
+        projectContactSelect.addEventListener('change', () => {
+            const selectedContactId = parseInt(projectContactSelect.value);
+            if (selectedContactId) {
+                const contact = contacts.find(c => c.id === selectedContactId);
+                if (contact) {
+                    projectSelectedContactPhoneSpan.innerHTML = contact.phone ? `<a href="tel:${contact.phone}" class="text-indigo-600 hover:underline">${contact.phone}</a> <span class="contact-action-icon" onclick="event.stopPropagation(); window.location.href='tel:${contact.phone}'">📞</span>` : '-';
+                    projectSelectedContactEmailSpan.innerHTML = contact.email ? `<a href="mailto:${contact.email}" class="text-indigo-600 hover:underline">${contact.email}</a> <span class="contact-action-icon" onclick="event.stopPropagation(); window.location.href='mailto:${contact.email}'">📧</span>` : '-';
+                    projectSelectedContactDetailsDiv.style.display = 'block';
+                } else {
+                    projectSelectedContactDetailsDiv.style.display = 'none';
+                }
+            } else {
+                projectSelectedContactDetailsDiv.style.display = 'none';
+            }
+        });
+
+
         function openEditProjectModal(id) { openProjectModal(projects.find(p => p.id === id)); }
         function closeProjectModal() { projectModal.style.display = 'none'; }
 
         projectForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const id = projectIdInput.value ? parseInt(projectIdInput.value) : null;
+            const selectedClientId = projectClientSelect.value ? parseInt(projectClientSelect.value) : null;
+            const clientNameText = selectedClientId ? projectClientSelect.options[projectClientSelect.selectedIndex].text : '';
+
+
             const projectData = {
                 name: document.getElementById('projectName').value,
                 projectType: document.getElementById('projectType').value,
-                clientName: document.getElementById('projectClientName').value,
+                clientId: selectedClientId,
+                clientName: clientNameText, 
+                branchId: projectBranchSelect.value ? parseInt(projectBranchSelect.value) : null,
+                contactId: projectContactSelect.value ? parseInt(projectContactSelect.value) : null,
                 devices: document.getElementById('projectDevices').value,
                 accessories: document.getElementById('projectAccessories').value,
                 productDescription: document.getElementById('projectProductDescription').value,
@@ -999,6 +1361,11 @@
                 alert('שם פרויקט וסוג פרויקט הם שדות חובה.');
                 return;
             }
+             if (!projectData.clientId) { 
+                alert('יש לבחור לקוח.');
+                return;
+            }
+
 
             if (id) { 
                 const index = projects.findIndex(p => p.id === id);
@@ -1301,7 +1668,8 @@
                     cancelEdit();
                 } else if (e.key === 'Enter') {
                     if (inputType === 'textarea') {
-                        // Allow default Enter behavior (new line). Save on blur.
+                        // For textarea, Enter (with or without Shift) should create a new line.
+                        // Save will happen on blur.
                         return; 
                     } else { 
                         e.preventDefault();
@@ -1430,11 +1798,412 @@
             }
         }
         
+        // --- Clients ---
+        function renderClientsTable() {
+            clientsTableBody.innerHTML = '';
+            clientsListTitle.textContent = `רשימת לקוחות (${clients.length})`;
+
+            if (clients.length === 0) {
+                clientsTableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-gray-500">אין לקוחות להצגה.</td></tr>';
+                return;
+            }
+
+            clients.sort((a,b) => (a.companyName || '').localeCompare(b.companyName || ''));
+            clients.forEach(client => {
+                const row = clientsTableBody.insertRow();
+                row.dataset.clientId = client.id;
+                row.className = "border-b border-gray-300 hover:bg-gray-100 clickable-row";
+                row.onclick = () => handleClientRowClick(client.id);
+
+
+                row.insertCell().textContent = client.companyName || '-';
+                row.insertCell().textContent = client.clientType || '-';
+                const notesCell = row.insertCell();
+                notesCell.textContent = client.notes || '-';
+                notesCell.classList.add('notes-col'); 
+
+                const actionsCell = row.insertCell();
+                actionsCell.className = 'actions-col';
+                const actionsWrapper = document.createElement('div');
+                actionsWrapper.className = 'actions-cell-content';
+                
+                const editBtn = document.createElement('button');
+                editBtn.innerHTML = '✏️';
+                editBtn.title = 'ערוך לקוח';
+                editBtn.className = 'text-yellow-500 hover:text-yellow-700 table-action-button';
+                editBtn.onclick = (e) => { e.stopPropagation(); openEditClientModal(client.id); };
+                actionsWrapper.appendChild(editBtn);
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.innerHTML = '🗑️';
+                deleteBtn.title = 'מחק לקוח';
+                deleteBtn.className = 'text-red-500 hover:text-red-700 table-action-button';
+                deleteBtn.onclick = (e) => { e.stopPropagation(); deleteClient(client.id); };
+                actionsWrapper.appendChild(deleteBtn);
+                actionsCell.appendChild(actionsWrapper);
+            });
+            saveDataToLocalStorage();
+        }
+
+        function handleClientRowClick(clientId) {
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
+
+            if (client.isSingleBranch) {
+                let branch = branches.find(b => b.clientId === clientId);
+                if (!branch) { 
+                    branch = {
+                        id: branches.length > 0 ? Math.max(...branches.map(b => b.id)) + 1 : 1,
+                        clientId: clientId,
+                        branchName: "ראשי", 
+                        city: client.city || '' 
+                    };
+                    branches.push(branch);
+                    saveDataToLocalStorage();
+                }
+                openContactsModal(branch.id);
+            } else {
+                openBranchesModal(clientId);
+            }
+        }
+
+
+        function openClientModal(clientToEdit = null) {
+            clientForm.reset();
+            clientIdInput.value = '';
+            populateClientTypes(); 
+            if (clientToEdit) {
+                clientModalTitle.textContent = 'ערוך לקוח';
+                clientIdInput.value = clientToEdit.id;
+                document.getElementById('clientNameModal').value = clientToEdit.companyName;
+                document.getElementById('clientTypeModal').value = clientToEdit.clientType || '';
+                clientIsSingleBranchModalCheckbox.checked = clientToEdit.isSingleBranch || false;
+                document.getElementById('clientContactPersonModal').value = clientToEdit.contactPerson || '';
+                document.getElementById('clientPhoneModal').value = clientToEdit.phone || '';
+                document.getElementById('clientEmailModal').value = clientToEdit.email || '';
+                document.getElementById('clientCityModal').value = clientToEdit.city || '';
+                document.getElementById('clientNotesModal').value = clientToEdit.notes || '';
+            } else {
+                clientModalTitle.textContent = 'הוסף לקוח חדש';
+                clientIsSingleBranchModalCheckbox.checked = false;
+            }
+            clientModal.style.display = 'block';
+        }
+
+        function closeClientModal() {
+            clientModal.style.display = 'none';
+        }
+
+        function openEditClientModal(id) {
+            const client = clients.find(c => c.id === id);
+            if (client) openClientModal(client);
+        }
+
+        clientForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = clientIdInput.value ? parseInt(clientIdInput.value) : null;
+            const clientData = {
+                companyName: document.getElementById('clientNameModal').value,
+                clientType: document.getElementById('clientTypeModal').value,
+                isSingleBranch: clientIsSingleBranchModalCheckbox.checked,
+                contactPerson: document.getElementById('clientContactPersonModal').value,
+                phone: document.getElementById('clientPhoneModal').value,
+                email: document.getElementById('clientEmailModal').value,
+                city: document.getElementById('clientCityModal').value,
+                notes: document.getElementById('clientNotesModal').value,
+            };
+
+            if (!clientData.companyName) {
+                alert('שם לקוח/חברה הוא שדה חובה.');
+                return;
+            }
+
+            let currentClientId = id;
+            if (id) {
+                const index = clients.findIndex(c => c.id === id);
+                if (index > -1) clients[index] = { ...clients[index], ...clientData };
+            } else {
+                clientData.id = clients.length > 0 ? Math.max(...clients.map(c => c.id)) + 1 : 1;
+                currentClientId = clientData.id;
+                clients.push(clientData);
+            }
+            
+            if (clientData.isSingleBranch) {
+                let existingBranches = branches.filter(b => b.clientId === currentClientId);
+                if (existingBranches.length === 0) {
+                    const defaultBranch = {
+                        id: branches.length > 0 ? Math.max(...branches.map(b => b.id)) + 1 : 1,
+                        clientId: currentClientId,
+                        branchName: "ראשי", 
+                        city: clientData.city || '' 
+                    };
+                    branches.push(defaultBranch);
+                } else if (existingBranches.length > 1) {
+                    console.warn(`Client ${currentClientId} marked as single branch but has multiple branches. Using the first one.`);
+                }
+            }
+
+            renderClientsTable();
+            closeClientModal();
+        });
+
+        function deleteClient(id) {
+            const clientToDelete = clients.find(c => c.id === id);
+             if (clientToDelete && confirm(`האם אתה בטוח שברצונך למחוק את הלקוח "${clientToDelete.companyName}" וכל הסניפים ואנשי הקשר המשויכים אליו?`)) {
+                clients = clients.filter(c => c.id !== id);
+                const clientBranchesToDelete = branches.filter(b => b.clientId === id);
+                clientBranchesToDelete.forEach(branch => {
+                    contacts = contacts.filter(c => c.branchId !== branch.id);
+                });
+                branches = branches.filter(b => b.clientId !== id);
+                renderClientsTable();
+            }
+        }
+
+        // --- Branches ---
+        function openBranchesModal(clientId) {
+            selectedClientIdForBranches = clientId;
+            const client = clients.find(c => c.id === clientId);
+            if (client) {
+                branchesModalTitle.textContent = `סניפים עבור: ${client.companyName}`;
+                renderBranchesTable(clientId);
+                branchesModal.style.display = 'block';
+            }
+        }
+        function closeBranchesModal() {
+            branchesModal.style.display = 'none';
+            selectedClientIdForBranches = null;
+        }
+        function renderBranchesTable(clientId) {
+            branchesTableBody.innerHTML = '';
+            const clientBranches = branches.filter(b => b.clientId === clientId);
+            if (clientBranches.length === 0) {
+                branchesTableBody.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-gray-500">אין סניפים להצגה עבור לקוח זה.</td></tr>';
+                return;
+            }
+            clientBranches.sort((a,b) => (a.branchName || '').localeCompare(b.branchName || ''));
+            clientBranches.forEach(branch => {
+                const row = branchesTableBody.insertRow();
+                row.dataset.branchId = branch.id;
+                row.className = "border-b border-gray-300 hover:bg-gray-100 clickable-row";
+                row.onclick = () => openContactsModal(branch.id);
+
+
+                row.insertCell().textContent = branch.branchName || '-';
+                row.insertCell().textContent = branch.city || '-';
+                
+                const actionsCell = row.insertCell();
+                actionsCell.className = 'actions-col';
+                const actionsWrapper = document.createElement('div');
+                actionsWrapper.className = 'actions-cell-content flex-row space-x-1 space-x-reverse'; 
+                
+                const editBtn = document.createElement('button');
+                editBtn.innerHTML = '✏️';
+                editBtn.title = 'ערוך סניף';
+                editBtn.className = 'text-yellow-500 hover:text-yellow-700 table-action-button';
+                editBtn.onclick = (e) => { e.stopPropagation(); openEditBranchModal(branch.id); };
+                actionsWrapper.appendChild(editBtn);
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.innerHTML = '🗑️';
+                deleteBtn.title = 'מחק סניף';
+                deleteBtn.className = 'text-red-500 hover:text-red-700 table-action-button';
+                deleteBtn.onclick = (e) => { e.stopPropagation(); deleteBranch(branch.id); };
+                actionsWrapper.appendChild(deleteBtn);
+                actionsCell.appendChild(actionsWrapper);
+            });
+        }
+        function openBranchAddModal() {
+            if (!selectedClientIdForBranches) return;
+            branchForm.reset();
+            branchIdInput.value = '';
+            branchClientIdInput.value = selectedClientIdForBranches;
+            const client = clients.find(c => c.id === selectedClientIdForBranches);
+            branchModalTitle.textContent = `הוסף סניף חדש ללקוח: ${client ? client.companyName : ''}`;
+            branchModal.style.display = 'block';
+        }
+        function openEditBranchModal(branchId) {
+            const branch = branches.find(b => b.id === branchId);
+            if (branch) {
+                branchForm.reset();
+                branchIdInput.value = branch.id;
+                branchClientIdInput.value = branch.clientId;
+                document.getElementById('branchNameModal').value = branch.branchName || '';
+                document.getElementById('branchCityModal').value = branch.city || '';
+                const client = clients.find(c => c.id === branch.clientId);
+                branchModalTitle.textContent = `ערוך סניף עבור: ${client ? client.companyName : ''}`;
+                branchModal.style.display = 'block';
+            }
+        }
+        function closeBranchModal() { branchModal.style.display = 'none'; }
+        branchForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = branchIdInput.value ? parseInt(branchIdInput.value) : null;
+            const clientIdVal = parseInt(branchClientIdInput.value); 
+            const branchData = {
+                clientId: clientIdVal,
+                branchName: document.getElementById('branchNameModal').value,
+                city: document.getElementById('branchCityModal').value,
+            };
+            if (!branchData.branchName) { alert('שם סניף הוא שדה חובה.'); return; }
+
+            if (id) {
+                const index = branches.findIndex(b => b.id === id);
+                if (index > -1) branches[index] = { ...branches[index], ...branchData };
+            } else {
+                branchData.id = branches.length > 0 ? Math.max(...branches.map(b => b.id)) + 1 : 1;
+                branches.push(branchData);
+            }
+            renderBranchesTable(clientIdVal);
+            closeBranchModal();
+            saveDataToLocalStorage();
+        });
+        function deleteBranch(branchId) {
+            const branchToDelete = branches.find(b => b.id === branchId);
+            if (branchToDelete && confirm(`האם אתה בטוח שברצונך למחוק את הסניף "${branchToDelete.branchName}" וכל אנשי הקשר המשויכים אליו?`)) {
+                branches = branches.filter(b => b.id !== branchId);
+                contacts = contacts.filter(c => c.branchId !== branchId); 
+                renderBranchesTable(branchToDelete.clientId); 
+                saveDataToLocalStorage();
+            }
+        }
+
+        // --- Contacts ---
+        function openContactsModal(branchId) {
+            selectedBranchIdForContacts = branchId;
+            const branch = branches.find(b => b.id === branchId);
+            const client = clients.find(c => c.id === branch?.clientId);
+            if (branch && client) {
+                contactsModalTitle.textContent = `אנשי קשר עבור: ${client.companyName} - ${branch.branchName}`;
+                renderContactsTable(branchId);
+                contactsModal.style.display = 'block';
+            }
+        }
+        function closeContactsModal() {
+            contactsModal.style.display = 'none';
+            selectedBranchIdForContacts = null;
+        }
+        function renderContactsTable(branchId) {
+            contactsTableBody.innerHTML = '';
+            const branchContacts = contacts.filter(c => c.branchId === branchId);
+             if (branchContacts.length === 0) {
+                contactsTableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-500">אין אנשי קשר להצגה עבור סניף זה.</td></tr>'; 
+                return;
+            }
+            branchContacts.sort((a,b) => (a.contactName || '').localeCompare(b.contactName || ''));
+            branchContacts.forEach(contact => {
+                const row = contactsTableBody.insertRow();
+                row.dataset.contactId = contact.id;
+                row.insertCell().textContent = contact.contactName || '-';
+                row.insertCell().textContent = contact.role || '-'; 
+                const phoneCell = row.insertCell();
+                phoneCell.innerHTML = contact.phone ? `<a href="tel:${contact.phone}" class="text-indigo-600 hover:underline">${contact.phone}</a> <span class="contact-action-icon" onclick="event.stopPropagation(); window.location.href='tel:${contact.phone}'">📞</span>` : '-';
+                const emailCell = row.insertCell();
+                emailCell.innerHTML = contact.email ? `<a href="mailto:${contact.email}" class="text-indigo-600 hover:underline">${contact.email}</a> <span class="contact-action-icon" onclick="event.stopPropagation(); window.location.href='mailto:${contact.email}'">📧</span>`: '-';
+                
+                const actionsCell = row.insertCell();
+                actionsCell.className = 'actions-col';
+                const actionsWrapper = document.createElement('div');
+                actionsWrapper.className = 'actions-cell-content flex-row space-x-1 space-x-reverse';
+
+                const editBtn = document.createElement('button');
+                editBtn.innerHTML = '✏️';
+                editBtn.title = 'ערוך איש קשר';
+                editBtn.className = 'text-yellow-500 hover:text-yellow-700 table-action-button';
+                editBtn.onclick = (e) => { e.stopPropagation(); openEditContactModal(contact.id); };
+                actionsWrapper.appendChild(editBtn);
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.innerHTML = '🗑️';
+                deleteBtn.title = 'מחק איש קשר';
+                deleteBtn.className = 'text-red-500 hover:text-red-700 table-action-button';
+                deleteBtn.onclick = (e) => { e.stopPropagation(); deleteContact(contact.id); };
+                actionsWrapper.appendChild(deleteBtn);
+                actionsCell.appendChild(actionsWrapper);
+            });
+        }
+        function openContactAddModal() {
+            if (!selectedBranchIdForContacts) return;
+            contactForm.reset();
+            contactIdInput.value = '';
+            contactBranchIdInput.value = selectedBranchIdForContacts;
+            const branch = branches.find(b => b.id === selectedBranchIdForContacts);
+            const client = clients.find(c => c.id === branch?.clientId);
+            contactModalTitle.textContent = `הוסף איש קשר ל: ${client?.companyName} - ${branch?.branchName}`;
+            contactModal.style.display = 'block';
+        }
+        function openEditContactModal(contactId) {
+            const contact = contacts.find(c => c.id === contactId);
+            if (contact) {
+                contactForm.reset();
+                contactIdInput.value = contact.id;
+                contactBranchIdInput.value = contact.branchId;
+                document.getElementById('contactNameModal').value = contact.contactName || '';
+                document.getElementById('contactRoleModal').value = contact.role || ''; 
+                document.getElementById('contactPhoneModal').value = contact.phone || '';
+                document.getElementById('contactEmailModal').value = contact.email || '';
+                const branch = branches.find(b => b.id === contact.branchId);
+                const client = clients.find(c => c.id === branch?.clientId);
+                contactModalTitle.textContent = `ערוך איש קשר עבור: ${client?.companyName} - ${branch?.branchName}`;
+                contactModal.style.display = 'block';
+            }
+        }
+        function closeContactModal() { contactModal.style.display = 'none'; }
+        contactForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = contactIdInput.value ? parseInt(contactIdInput.value) : null;
+            const branchIdVal = parseInt(contactBranchIdInput.value); 
+            const contactData = {
+                branchId: branchIdVal,
+                contactName: document.getElementById('contactNameModal').value,
+                role: document.getElementById('contactRoleModal').value, 
+                phone: document.getElementById('contactPhoneModal').value,
+                email: document.getElementById('contactEmailModal').value,
+            };
+            if (!contactData.contactName) { alert('שם איש קשר הוא שדה חובה.'); return; }
+
+            if (id) {
+                const index = contacts.findIndex(c => c.id === id);
+                if (index > -1) contacts[index] = { ...contacts[index], ...contactData };
+            } else {
+                contactData.id = contacts.length > 0 ? Math.max(...contacts.map(c => c.id)) + 1 : 1;
+                contacts.push(contactData);
+            }
+            renderContactsTable(branchIdVal);
+            closeContactModal();
+            saveDataToLocalStorage();
+        });
+        function deleteContact(contactId) {
+             const contactToDelete = contacts.find(c => c.id === contactId);
+            if (contactToDelete && confirm(`האם אתה בטוח שברצונך למחוק את איש הקשר "${contactToDelete.contactName}"?`)) {
+                contacts = contacts.filter(c => c.id !== contactId);
+                renderContactsTable(contactToDelete.branchId); 
+                saveDataToLocalStorage();
+            }
+        }
+
+
         // Event Listeners for Modals and Filters
         openProjectModalButton.addEventListener('click', () => openProjectModal());
         closeProjectModalButton.addEventListener('click', closeProjectModal);
         cancelProjectButton.addEventListener('click', closeProjectModal);
         
+        openClientModalButton.addEventListener('click', () => openClientModal());
+        closeClientModalButton.addEventListener('click', closeClientModal);
+        cancelClientButton.addEventListener('click', closeClientModal);
+
+        openBranchAddModalButton.addEventListener('click', openBranchAddModal);
+        closeBranchModalButton.addEventListener('click', closeBranchModal);
+        cancelBranchButton.addEventListener('click', closeBranchModal);
+        closeBranchesModalButton.addEventListener('click', closeBranchesModal);
+
+
+        openContactAddModalButton.addEventListener('click', openContactAddModal);
+        closeContactModalButton.addEventListener('click', closeContactModal);
+        cancelContactButton.addEventListener('click', closeContactModal);
+        closeContactsModalButton.addEventListener('click', closeContactsModal);
+
+
         openTaskModalButton.addEventListener('click', () => openTaskModalForProject());
         closeTaskModalButton.addEventListener('click', closeTaskModal);
         cancelTaskButton.addEventListener('click', closeTaskModal);
@@ -1450,11 +2219,16 @@
         window.onclick = function(event) { 
             if (event.target == projectModal) closeProjectModal();
             if (event.target == taskModal) closeTaskModal();
+            if (event.target == clientModal) closeClientModal();
+            if (event.target == branchModal) closeBranchModal();
+            if (event.target == contactModal) closeContactModal();
             if (event.target == tasksDisplayModal) { 
                  tasksDisplayModal.style.display = 'none';
                  selectedProjectId = null;
                  document.querySelectorAll('.project-row.selected').forEach(row => row.classList.remove('selected'));
             }
+            if (event.target == branchesModal) closeBranchesModal();
+            if (event.target == contactsModal) closeContactsModal();
         }
         filterTaskTextInput.addEventListener('input', renderTasksTable);
         sortTasksBySelect.addEventListener('change', renderTasksTable);
