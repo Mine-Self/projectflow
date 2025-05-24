@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ניהול פרויקטים ומשימות</title>
+    <title>ProjectFlow</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet" />
@@ -12,8 +12,8 @@
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="מנהל משימות">
-    <link rel="apple-touch-icon" href="https://placehold.co/180x180/4F46E5/FFFFFF?text=מנהל&font=assistant">
+    <meta name="apple-mobile-web-app-title" content="ProjectFlow">
+    <link rel="apple-touch-icon" href="https://placehold.co/180x180/4F46E5/FFFFFF?text=PF&font=assistant">
 
 
     <style>
@@ -21,20 +21,20 @@
             font-family: 'Assistant', 'Inter', sans-serif; 
             background-color: #f3f4f6; /* gray-100 */
             color: #1f2937; /* gray-800 */
-            -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
+            -webkit-tap-highlight-color: transparent; 
         }
         .card { background-color: #ffffff; border: 1px solid #d1d5db; /* gray-300 */ }
         .modal, .login-modal, .tasks-display-modal, .branches-modal, .contacts-modal { 
             display: none; position: fixed; z-index: 100; 
             left: 0; top: 0; width: 100%; height: 100%; 
             overflow: auto; background-color: rgba(0,0,0,0.6); 
-            padding-top: 1rem; /* Reduced padding for mobile */
+            padding-top: 1rem; 
             padding-bottom: 1rem;
         }
         .modal-content, .login-modal-content, .tasks-modal-content, .branches-modal-content, .contacts-modal-content { 
-            background-color: #fefefe; margin: 2% auto; padding: 1rem; /* Reduced padding for mobile */
+            background-color: #fefefe; margin: 2% auto; padding: 1rem; 
             border: 1px solid #d1d5db; /* gray-300 */
-            width: 95%; /* More width on mobile */
+            width: 95%; 
             border-radius: 8px; position: relative;
             color: #1f2937; /* gray-800 */
         }
@@ -60,7 +60,7 @@
         }
 
         .close-button { 
-             color: #aaa; position: absolute; left: 10px; top: 5px; /* Adjusted for smaller padding */
+             color: #aaa; position: absolute; left: 10px; top: 5px; 
              font-size: 28px; font-weight: bold; cursor: pointer; 
         }
         .close-button:hover, .close-button:focus { color: black; text-decoration: none; }
@@ -69,10 +69,10 @@
         
         .rtl-table th, .rtl-table td { 
             text-align: right; 
-            padding: 0.4rem 0.3rem; /* Slightly reduced padding */
+            padding: 0.4rem 0.3rem; 
             white-space: normal; 
             vertical-align: top; 
-            min-height: 36px; /* Slightly reduced min-height */
+            min-height: 36px; 
         }
         .rtl-table th.project-name-col, .rtl-table td.project-name-col { min-width: 100px; max-width: 180px; cursor:pointer; } 
         .rtl-table th.description-col, .rtl-table td.description-col,
@@ -107,7 +107,7 @@
         .fc-header-toolbar { direction: rtl; }
         .fc-toolbar-chunk:first-child { order: 3; } .fc-toolbar-chunk:nth-child(2) { order: 2; } .fc-toolbar-chunk:last-child { order: 1; } 
         .fc-event-main { direction: rtl; text-align: right;}
-        #appContainer, #clientsView, #calendarView { display: none; } 
+        #appContainer, #clientsView, #calendarView, #allTasksView { display: none; } 
         .project-row.selected { background-color: #E0E7FF !important; } 
         .tab-button { padding: 0.5rem 1rem; border-radius: 0.375rem 0.375rem 0 0; background-color: #E5E7EB; border: 1px solid #D1D5DB; border-bottom: none; cursor: pointer; color: #4b5563; }
         .tab-button.active { background-color: #ffffff; border-bottom-color: #ffffff; color: #1f2937; font-weight: 600; }
@@ -157,6 +157,53 @@
         .inline-edit-textarea { width: 100%; box-sizing: border-box; padding: 0.25rem; border: 1px solid #4F46E5; border-radius: 0.25rem; font-size: 0.875rem; min-height: 50px; resize: vertical; background-color: #ffffff; color: #1f2937;}
         .contact-action-icon { font-size: 0.9rem; margin-right: 0.25rem; color: #4F46E5; cursor:pointer; }
         .contact-action-icon:hover { color: #4338CA; }
+        .toggle-filters-button {
+            background-color: #e5e7eb; /* gray-200 */
+            color: #374151; /* gray-700 */
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+            border-radius: 0.375rem;
+            border: 1px solid #d1d5db;
+            cursor: pointer;
+            margin-bottom: 0.5rem;
+        }
+        .toggle-filters-button:hover { background-color: #d1d5db; /* gray-300 */ }
+        .hidden-filters { display: none; }
+
+        /* Profile Dropdown */
+        .profile-dropdown {
+            position: absolute;
+            top: 100%; /* Position below the profile image */
+            left: 0; /* Align to the left of the profile image container */
+            background-color: white;
+            border: 1px solid #d1d5db; /* gray-300 */
+            border-radius: 0.375rem; /* rounded-md */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-lg */
+            z-index: 50;
+            min-width: 160px;
+            padding: 0.5rem; /* p-2 */
+        }
+        .profile-dropdown-item {
+            display: block;
+            padding: 0.5rem 1rem; /* py-2 px-4 */
+            font-size: 0.875rem; /* text-sm */
+            color: #374151; /* text-gray-700 */
+            white-space: nowrap;
+        }
+        .profile-dropdown-item:hover {
+            background-color: #f3f4f6; /* hover:bg-gray-100 */
+        }
+        .profile-dropdown-button {
+            background-color: transparent;
+            border: none;
+            color: #ef4444; /* text-red-500 */
+            cursor: pointer;
+            width: 100%;
+            text-align: right;
+        }
+         .profile-dropdown-button:hover {
+            color: #dc2626; /* hover:text-red-700 */
+        }
 
     </style>
 </head>
@@ -175,42 +222,105 @@
         </div>
     </div>
 
-    <div id="appContainer" class="container mx-auto p-2 sm:p-4 md:p-6 lg:p-8"> <header class="mb-6 text-center">
-            <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-indigo-600">ניהול פרויקטים ומשימות</h1>
-            <div class="flex flex-col sm:flex-row justify-center items-center mt-2 space-y-1 sm:space-y-0 sm:space-x-4 sm:space-x-reverse text-gray-600">
-                <p>משתמש מחובר: <span id="loggedInUserEmail"></span></p>
-                <button id="logoutButton" class="text-indigo-600 hover:text-indigo-700 hover:underline text-xs">(התנתק)</button>
+    <div id="appContainer" class="container mx-auto p-2 sm:p-4 md:p-6 lg:p-8">
+        <header class="mb-6 flex justify-between items-center">
+            <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-indigo-600">ProjectFlow</h1>
+            <div class="relative">
+                <img id="profileImage" src="https://placehold.co/40x40/4F46E5/FFFFFF?text=PF&font=assistant" alt="תמונת פרופיל" class="w-10 h-10 rounded-full cursor-pointer object-cover" onerror="this.onerror=null;this.src='https://placehold.co/40x40/cccccc/FFFFFF?text=??&font=assistant';" >
+                <div id="profileDropdownMenu" class="profile-dropdown hidden">
+                    <div class="profile-dropdown-item" id="loggedInUserEmailContainer">
+                        <span id="loggedInUserEmail" class="block truncate"></span>
+                    </div>
+                    <button id="logoutButton" class="profile-dropdown-item profile-dropdown-button">התנתק</button>
+                </div>
             </div>
         </header>
 
         <div class="mb-4 flex border-b border-gray-300">
-            <button id="projectsTabButton" class="tab-button active text-sm sm:text-base">פרויקטים</button>
-            <button id="clientsTabButton" class="tab-button text-sm sm:text-base">לקוחות</button>
-            <button id="calendarTabButton" class="tab-button text-sm sm:text-base">לוח שנה</button>
+            <button id="allTasksTabButton" class="tab-button">כל המשימות</button>
+            <button id="projectsTabButton" class="tab-button">פרויקטים</button>
+            <button id="clientsTabButton" class="tab-button">לקוחות</button>
+            <button id="calendarTabButton" class="tab-button">לוח שנה</button>
         </div>
 
-        <div id="projectsView">
-            <div class="filters-container mb-6 card p-2 sm:p-4">
-                 <h3 class="text-md sm:text-lg font-semibold text-gray-700 mb-2 sm:mb-3">סינון ומיון פרויקטים:</h3>
-                <div class="flex flex-wrap items-center gap-x-2 sm:gap-x-4 gap-y-2">
-                    <div class="filter-group w-full sm:w-auto">
-                        <label for="filterProjectText" class="text-xs sm:text-sm font-medium text-gray-600">חיפוש בפרויקטים:</label>
-                        <input type="text" id="filterProjectText" class="rtl-form-input filter-item-input flex-grow px-2 py-1 border rounded-md shadow-sm border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+        <div id="allTasksView">
+            <div class="mb-2 text-left">
+                <button id="toggleAllTasksFiltersButton" class="toggle-filters-button">הצג/הסתר מסננים</button>
+            </div>
+            <div id="allTasksFiltersContainer" class="filters-container mb-6 card hidden-filters">
+                 <h3 class="text-lg font-semibold text-gray-700 mb-3">סינון ומיון כלל המשימות:</h3>
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+                    <div class="filter-group">
+                        <label for="filterAllTasksText" class="text-sm font-medium text-gray-600">חיפוש במשימות:</label>
+                        <input type="text" id="filterAllTasksText" class="rtl-form-input filter-item-input flex-grow px-3 py-1 border rounded-md shadow-sm border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
                     </div>
-                    <div class="filter-group w-full sm:w-auto">
-                        <label for="filterProjectType" class="text-xs sm:text-sm font-medium text-gray-600">סוג פרויקט:</label>
-                        <select id="filterProjectType" class="rtl-select filter-item-select flex-grow px-2 py-1 border rounded-md shadow-sm border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                     <div class="filter-group">
+                        <label for="filterAllTasksProject" class="text-sm font-medium text-gray-600">פרויקט:</label>
+                        <select id="filterAllTasksProject" class="rtl-select filter-item-select flex-grow px-3 py-1 border rounded-md shadow-sm border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="">כל הפרויקטים</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="text-sm font-medium text-gray-600">סטטוס משימה:</label>
+                        <div id="filterAllTasksStatusCheckboxes" class="status-checkbox-group">
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label for="sortAllTasksBy" class="text-sm font-medium text-gray-600">מיין משימות לפי:</label>
+                        <select id="sortAllTasksBy" class="rtl-select filter-item-select flex-grow px-3 py-1 border rounded-md shadow-sm border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="creationDate">תאריך יצירה</option>
+                            <option value="dueDate">תאריך יעד/סיום</option>
+                            <option value="status">סטטוס</option>
+                            <option value="projectId">פרויקט</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+             <div class="card overflow-x-auto">
+                <h2 id="allTasksListTitle" class="text-2xl font-semibold text-gray-700 p-4 border-b border-gray-300">כל המשימות</h2>
+                <table class="min-w-full leading-normal rtl-table">
+                    <thead>
+                        <tr class="bg-gray-200 text-gray-600 uppercase text-xs sm:text-sm leading-normal">
+                            <th class="py-3 px-6 task-id-col">#</th>
+                            <th class="py-3 px-6">פרויקט</th>
+                            <th class="py-3 px-6 description-col">תיאור</th>
+                            <th class="py-3 px-6 task-update-notes-col">עדכון</th>
+                            <th class="py-3 px-6 task-date-col">תאריך יעד/סיום</th>
+                            <th class="py-3 px-6 task-status-col">סטטוס</th>
+                            <th class="py-3 px-6 actions-col">פעולות</th>
+                        </tr>
+                    </thead>
+                    <tbody id="allTasksTableBody" class="text-sm"></tbody>
+                </table>
+            </div>
+        </div>
+
+
+        <div id="projectsView">
+             <div class="mb-2 text-left">
+                <button id="toggleProjectFiltersButton" class="toggle-filters-button">הצג/הסתר מסננים</button>
+            </div>
+            <div id="projectFiltersContainer" class="filters-container mb-6 card hidden-filters">
+                 <h3 class="text-lg font-semibold text-gray-700 mb-3">סינון ומיון פרויקטים:</h3>
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+                    <div class="filter-group">
+                        <label for="filterProjectText" class="text-sm font-medium text-gray-600">חיפוש בפרויקטים:</label>
+                        <input type="text" id="filterProjectText" class="rtl-form-input filter-item-input flex-grow px-3 py-1 border rounded-md shadow-sm border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterProjectType" class="text-sm font-medium text-gray-600">סוג פרויקט:</label>
+                        <select id="filterProjectType" class="rtl-select filter-item-select flex-grow px-3 py-1 border rounded-md shadow-sm border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
                             <option value="">הכל</option>
                         </select>
                     </div>
-                     <div class="filter-group w-full sm:w-auto">
-                        <label class="text-xs sm:text-sm font-medium text-gray-600">סטטוס פרויקט:</label>
+                     <div class="filter-group">
+                        <label class="text-sm font-medium text-gray-600">סטטוס פרויקט:</label>
                         <div id="filterProjectStatusCheckboxes" class="status-checkbox-group">
                         </div>
                     </div>
-                    <div class="filter-group w-full sm:w-auto">
-                        <label for="sortProjectsBy" class="text-xs sm:text-sm font-medium text-gray-600">מיין פרויקטים לפי:</label>
-                        <select id="sortProjectsBy" class="rtl-select filter-item-select flex-grow px-2 py-1 border rounded-md shadow-sm border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                    <div class="filter-group">
+                        <label for="sortProjectsBy" class="text-sm font-medium text-gray-600">מיין פרויקטים לפי:</label>
+                        <select id="sortProjectsBy" class="rtl-select filter-item-select flex-grow px-3 py-1 border rounded-md shadow-sm border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
                             <option value="name">שם פרויקט</option>
                             <option value="projectType">סוג פרויקט</option>
                             <option value="clientName">לקוח</option>
@@ -223,29 +333,29 @@
             </div>
 
             <div class="card overflow-x-auto mb-8">
-                <div class="flex justify-between items-center p-2 sm:p-4 border-b border-gray-300">
-                    <h2 id="projectsListTitle" class="text-xl sm:text-2xl font-semibold text-gray-700">רשימת פרויקטים</h2>
+                <div class="flex justify-between items-center p-4 border-b border-gray-300">
+                    <h2 id="projectsListTitle" class="text-2xl font-semibold text-gray-700">רשימת פרויקטים</h2>
                     <button id="openProjectModalButton" class="icon-button add-project-btn" title="הוסף פרויקט חדש">
                         +
                     </button>
                 </div>
                 <table class="min-w-full leading-normal rtl-table">
                     <thead>
-                        <tr class="bg-gray-200 text-gray-600 uppercase text-xs sm:text-sm leading-normal">
-                            <th class="py-2 px-3 project-name-col">שם פרויקט</th>
-                            <th class="py-2 px-3">סוג</th>
-                            <th class="py-2 px-3">לקוח</th>
-                            <th class="py-2 px-3">מכשור</th>
-                            <th class="py-2 px-3">אביזרים</th>
-                            <th class="py-2 px-3 description-col">תיאור מוצר/שירות</th>
-                            <th class="py-2 px-3">ת. פתיחה</th>
-                            <th class="py-2 px-3">ת. יעד סיום</th>
-                            <th class="py-2 px-3 notes-col">הערות</th>
-                            <th class="py-2 px-3 project-status-col">סטטוס</th>
-                            <th class="py-2 px-3 actions-col">פעולות</th>
+                        <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                            <th class="py-3 px-6 project-name-col">שם פרויקט</th>
+                            <th class="py-3 px-6">סוג</th>
+                            <th class="py-3 px-6">לקוח</th>
+                            <th class="py-3 px-6">מכשור</th>
+                            <th class="py-3 px-6">אביזרים</th>
+                            <th class="py-3 px-6 description-col">תיאור מוצר/שירות</th>
+                            <th class="py-3 px-6">ת. פתיחה</th>
+                            <th class="py-3 px-6">ת. יעד סיום</th>
+                            <th class="py-3 px-6 notes-col">הערות</th>
+                            <th class="py-3 px-6 project-status-col">סטטוס</th>
+                            <th class="py-3 px-6 actions-col">פעולות</th>
                         </tr>
                     </thead>
-                    <tbody id="projectsTableBody" class="text-sm"></tbody>
+                    <tbody id="projectsTableBody" class="text-gray-700 text-sm"></tbody>
                 </table>
             </div>
         </div>
@@ -257,25 +367,25 @@
                 </button>
             </div>
             <div class="card overflow-x-auto">
-                <h2 id="clientsListTitle" class="text-xl sm:text-2xl font-semibold text-gray-700 p-4 border-b border-gray-300">רשימת לקוחות</h2>
+                <h2 id="clientsListTitle" class="text-2xl font-semibold text-gray-700 p-4 border-b border-gray-300">רשימת לקוחות</h2>
                 <table class="min-w-full leading-normal rtl-table">
                     <thead>
-                        <tr class="bg-gray-200 text-gray-600 uppercase text-xs sm:text-sm leading-normal">
-                            <th class="py-2 px-3">שם חברה</th>
-                            <th class="py-2 px-3">סוג לקוח</th>
-                            <th class="py-2 px-3">הערות</th>
-                            <th class="py-2 px-3 actions-col">פעולות</th>
+                        <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                            <th class="py-3 px-6">שם חברה</th>
+                            <th class="py-3 px-6">סוג לקוח</th>
+                            <th class="py-3 px-6">הערות</th>
+                            <th class="py-3 px-6 actions-col">פעולות</th>
                         </tr>
                     </thead>
-                    <tbody id="clientsTableBody" class="text-sm"></tbody>
+                    <tbody id="clientsTableBody" class="text-gray-700 text-sm"></tbody>
                 </table>
             </div>
         </div>
 
 
         <div id="calendarView" class="hidden">
-            <div class="card p-2 sm:p-4">
-                <h2 class="text-xl sm:text-2xl font-semibold text-indigo-600 mb-4 text-center">לוח שנה - משימות</h2>
+            <div class="card p-4">
+                <h2 class="text-2xl font-semibold text-indigo-600 mb-4 text-center">לוח שנה - משימות</h2>
                 <div id="calendar"></div>
             </div>
         </div>
@@ -284,7 +394,7 @@
     <div id="tasksDisplayModal" class="tasks-display-modal">
         <div class="tasks-modal-content card">
             <div class="flex justify-between items-center pb-3 border-b mb-4 border-gray-300">
-                <h2 id="tasksForProjectTitle" class="text-xl sm:text-2xl font-semibold text-gray-700">משימות עבור פרויקט: <span id="taskCountInTitle" class="text-lg text-gray-500"></span></h2>
+                <h2 id="tasksForProjectTitle" class="text-2xl font-semibold text-gray-700">משימות עבור פרויקט: <span id="taskCountInTitle" class="text-lg text-gray-500"></span></h2>
                 <div class="flex items-center space-x-3 space-x-reverse"> 
                      <button id="openTaskModalButton" class="icon-button add-task-btn" title="הוסף משימה לפרויקט">
                         +
@@ -293,7 +403,10 @@
                 </div>
             </div>
             <div class="tasks-modal-body">
-                <div class="task-filters-container filters-container">
+                 <div class="mb-2 text-left">
+                    <button id="toggleTaskFiltersButton" class="toggle-filters-button">הצג/הסתר מסננים</button>
+                </div>
+                <div id="taskFiltersContainer" class="task-filters-container filters-container hidden-filters">
                     <div class="flex flex-wrap items-center gap-x-4 gap-y-2"> 
                         <div class="filter-group">
                             <label for="filterTaskText" class="text-sm font-medium text-gray-600">חיפוש במשימות:</label>
@@ -326,7 +439,7 @@
                                 <th class="py-3 px-6 actions-col">פעולות</th>
                             </tr>
                         </thead>
-                        <tbody id="tasksTableBody" class="text-sm"></tbody>
+                        <tbody id="tasksTableBody" class="text-gray-700 text-sm"></tbody>
                     </table>
                 </div>
             </div>
@@ -620,13 +733,19 @@
         const loginError = document.getElementById('loginError');
         const loggedInUserEmailSpan = document.getElementById('loggedInUserEmail');
         const logoutButton = document.getElementById('logoutButton');
+        const profileImage = document.getElementById('profileImage');
+        const profileDropdownMenu = document.getElementById('profileDropdownMenu');
+
         
         const projectsTabButton = document.getElementById('projectsTabButton');
         const clientsTabButton = document.getElementById('clientsTabButton');
         const calendarTabButton = document.getElementById('calendarTabButton');
+        const allTasksTabButton = document.getElementById('allTasksTabButton'); 
+
         const projectsView = document.getElementById('projectsView');
         const clientsView = document.getElementById('clientsView');
         const calendarView = document.getElementById('calendarView');
+        const allTasksView = document.getElementById('allTasksView'); 
 
         const openProjectModalButton = document.getElementById('openProjectModalButton');
         const projectsTableBody = document.getElementById('projectsTableBody');
@@ -651,6 +770,9 @@
         const filterProjectTypeSelect = document.getElementById('filterProjectType');
         const filterProjectStatusCheckboxesContainer = document.getElementById('filterProjectStatusCheckboxes');
         const sortProjectsBySelect = document.getElementById('sortProjectsBy');
+        const toggleProjectFiltersButton = document.getElementById('toggleProjectFiltersButton');
+        const projectFiltersContainer = document.getElementById('projectFiltersContainer');
+
 
         const openClientModalButton = document.getElementById('openClientModalButton');
         const clientsTableBody = document.getElementById('clientsTableBody');
@@ -705,11 +827,24 @@
         const cancelTaskButton = document.getElementById('cancelTaskButton');
         const taskIdInput = document.getElementById('taskId');
         const taskProjectIdInput = document.getElementById('taskProjectId'); 
+        const toggleTaskFiltersButton = document.getElementById('toggleTaskFiltersButton');
+        const taskFiltersContainer = document.getElementById('taskFiltersContainer');
         
 
         const filterTaskTextInput = document.getElementById('filterTaskText'); 
         const filterTaskStatusCheckboxesContainer = document.getElementById('filterTaskStatusCheckboxes');
         const sortTasksBySelect = document.getElementById('sortTasksBy');
+
+        // For "All Tasks" Tab
+        const allTasksTableBody = document.getElementById('allTasksTableBody');
+        const allTasksListTitle = document.getElementById('allTasksListTitle');
+        const filterAllTasksTextInput = document.getElementById('filterAllTasksText');
+        const filterAllTasksProjectSelect = document.getElementById('filterAllTasksProject');
+        const filterAllTasksStatusCheckboxesContainer = document.getElementById('filterAllTasksStatusCheckboxes');
+        const sortAllTasksBySelect = document.getElementById('sortAllTasksBy');
+        const toggleAllTasksFiltersButton = document.getElementById('toggleAllTasksFiltersButton');
+        const allTasksFiltersContainer = document.getElementById('allTasksFiltersContainer');
+
 
 
         // Data
@@ -722,6 +857,7 @@
         let selectedProjectId = null;
         let selectedClientIdForBranches = null; 
         let selectedBranchIdForContacts = null; 
+        let currentView = 'allTasks'; 
 
         const ALLOWED_EMAILS = ['mualex1970@gmail.com', 'alexmu14@gmail.com'];
         const PROJECT_TYPES = ['אבלואציה', 'מכרז', 'דוגמא', 'אחר', 'לרדוף אחרי לקוח', 'תעודות', 'הצעת מחיר', 'תקלה', 'הזמנה', 'פתיחת מק"ט', 'הדרכות'];
@@ -735,7 +871,7 @@
             if (loggedInUser && ALLOWED_EMAILS.includes(loggedInUser)) {
                 loginModal.style.display = 'none';
                 appContainer.style.display = 'block';
-                loggedInUserEmailSpan.textContent = loggedInUser;
+                if(loggedInUserEmailSpan) loggedInUserEmailSpan.textContent = loggedInUser;
                 initializePage();
             } else {
                 loginModal.style.display = 'flex';
@@ -757,23 +893,47 @@
             sessionStorage.removeItem('loggedInUser');
             projects = []; tasks = []; clients = []; branches = []; contacts = []; selectedProjectId = null;
             if(calendar) calendar.removeAllEvents();
+            profileDropdownMenu.classList.add('hidden'); // Close dropdown on logout
             checkLogin();
         });
 
+        // Profile Dropdown Logic
+        if (profileImage) {
+            profileImage.addEventListener('click', (e) => {
+                e.stopPropagation();
+                profileDropdownMenu.classList.toggle('hidden');
+            });
+        }
+
+        document.addEventListener('click', (e) => {
+            if (profileDropdownMenu && !profileDropdownMenu.classList.contains('hidden') && !profileDropdownMenu.contains(e.target) && e.target !== profileImage) {
+                profileDropdownMenu.classList.add('hidden');
+            }
+        });
+
+
         // --- Tabs ---
+        allTasksTabButton.addEventListener('click', () => switchTab('allTasks'));
         projectsTabButton.addEventListener('click', () => switchTab('projects'));
         clientsTabButton.addEventListener('click', () => switchTab('clients'));
         calendarTabButton.addEventListener('click', () => switchTab('calendar'));
 
         function switchTab(tabName) {
+            currentView = tabName; 
+            allTasksView.style.display = 'none';
             projectsView.style.display = 'none';
             clientsView.style.display = 'none';
             calendarView.style.display = 'none';
+            allTasksTabButton.classList.remove('active');
             projectsTabButton.classList.remove('active');
             clientsTabButton.classList.remove('active');
             calendarTabButton.classList.remove('active');
 
-            if (tabName === 'projects') {
+            if (tabName === 'allTasks') {
+                allTasksView.style.display = 'block';
+                allTasksTabButton.classList.add('active');
+                renderAllTasksTable();
+            } else if (tabName === 'projects') {
                 projectsView.style.display = 'block';
                 projectsTabButton.classList.add('active');
             } else if (tabName === 'clients') {
@@ -798,11 +958,13 @@
             populateClientTypes(); 
             populateProjectStatusFilterCheckboxes(); 
             populateTaskStatusCheckboxes(); 
+            populateAllTasksProjectFilter();
+            populateAllTasksStatusCheckboxes();
             initializeCalendar();
             renderProjectsTable(); 
             selectedProjectId = null; 
             tasksDisplayModal.style.display = 'none'; 
-            switchTab('projects'); 
+            switchTab('allTasks'); 
         }
         
         function populateProjectTypes() {
@@ -861,7 +1023,7 @@
             });
         }
         
-        function populateTaskStatusCheckboxes() {
+        function populateTaskStatusCheckboxes() { 
             filterTaskStatusCheckboxesContainer.innerHTML = ''; 
             TASK_STATUSES.forEach(status => {
                 const div = document.createElement('div');
@@ -869,9 +1031,9 @@
 
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
-                checkbox.id = `status_checkbox_${status.replace(/\s+/g, '_')}`; 
+                checkbox.id = `task_status_checkbox_project_scope_${status.replace(/\s+/g, '_')}`; 
                 checkbox.value = status;
-                checkbox.name = 'taskStatusFilter';
+                checkbox.name = 'taskStatusFilterProjectScope';
                 checkbox.addEventListener('change', renderTasksTable);
 
                 const label = document.createElement('label');
@@ -882,6 +1044,41 @@
                 div.appendChild(checkbox);
                 div.appendChild(label);
                 filterTaskStatusCheckboxesContainer.appendChild(div);
+            });
+        }
+
+        function populateAllTasksProjectFilter() {
+            filterAllTasksProjectSelect.innerHTML = '<option value="">כל הפרויקטים</option>';
+            projects.forEach(project => {
+                const option = document.createElement('option');
+                option.value = project.id;
+                option.textContent = project.name;
+                filterAllTasksProjectSelect.appendChild(option);
+            });
+        }
+
+        function populateAllTasksStatusCheckboxes() {
+            filterAllTasksStatusCheckboxesContainer.innerHTML = '';
+            const defaultStatuses = ['חדש', 'בתהליך', 'בהמתנה'];
+            TASK_STATUSES.forEach(status => {
+                const div = document.createElement('div');
+                div.className = 'status-checkbox-item';
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `all_tasks_status_checkbox_${status.replace(/\s+/g, '_')}`;
+                checkbox.value = status;
+                checkbox.name = 'allTasksStatusFilter';
+                if (defaultStatuses.includes(status)) {
+                    checkbox.checked = true;
+                }
+                checkbox.addEventListener('change', renderAllTasksTable);
+                const label = document.createElement('label');
+                label.htmlFor = checkbox.id;
+                label.textContent = status;
+                label.className = "mr-1 text-sm";
+                div.appendChild(checkbox);
+                div.appendChild(label);
+                filterAllTasksStatusCheckboxesContainer.appendChild(div);
             });
         }
 
@@ -1458,24 +1655,48 @@
         }
         
         function renderTasksTable() {
-            if (!selectedProjectId) {
-                tasksTableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-500">יש לבחור פרויקט להצגת משימות.</td></tr>';
-                if(taskCountInTitleSpan) taskCountInTitleSpan.textContent = '(0)';
+            const targetTableBody = currentView === 'allTasks' ? allTasksTableBody : tasksTableBody;
+            const targetTitleSpan = currentView === 'allTasks' ? allTasksListTitle : taskCountInTitleSpan;
+            const currentFiltersContainer = currentView === 'allTasks' ? allTasksFiltersContainer : taskFiltersContainer;
+            const currentFilterText = currentView === 'allTasks' ? filterAllTasksTextInput : filterTaskTextInput;
+            const currentStatusCheckboxes = currentView === 'allTasks' ? filterAllTasksStatusCheckboxesContainer : filterTaskStatusCheckboxesContainer;
+            const currentSortSelect = currentView === 'allTasks' ? sortAllTasksBySelect : sortTasksBySelect;
+            const currentProjectFilter = currentView === 'allTasks' ? filterAllTasksProjectSelect : {value: selectedProjectId}; 
+
+
+            if (!selectedProjectId && currentView !== 'allTasks') {
+                targetTableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-500">יש לבחור פרויקט להצגת משימות.</td></tr>';
+                if(targetTitleSpan && targetTitleSpan.id === 'taskCountInTitle') targetTitleSpan.textContent = '(0)';
                 return;
             }
-            let projectTasks = tasks.filter(task => task.projectId === selectedProjectId);
+
+            let tasksToDisplay;
+            if (currentView === 'allTasks') {
+                tasksToDisplay = [...tasks];
+                const selectedProjectFilterId = parseInt(currentProjectFilter.value);
+                if (selectedProjectFilterId) {
+                    tasksToDisplay = tasksToDisplay.filter(task => task.projectId === selectedProjectFilterId);
+                }
+            } else {
+                tasksToDisplay = tasks.filter(task => task.projectId === selectedProjectId);
+            }
             
-            const freeTextFilter = filterTaskTextInput.value.toLowerCase(); 
+            const freeTextFilter = currentFilterText.value.toLowerCase(); 
             
-            const selectedStatusCheckboxes = Array.from(filterTaskStatusCheckboxesContainer.querySelectorAll('input[type="checkbox"]:checked'));
+            const selectedStatusCheckboxes = Array.from(currentStatusCheckboxes.querySelectorAll('input[type="checkbox"]:checked'));
             const selectedStatuses = selectedStatusCheckboxes.map(cb => cb.value);
 
             const taskStatusCounts = {};
             TASK_STATUSES.forEach(status => taskStatusCounts[status] = 0);
-            tasks.filter(t => t.projectId === selectedProjectId).forEach(task => { 
+            
+            const tasksForCounting = currentView === 'allTasks' ? 
+                                    (currentProjectFilter.value ? tasks.filter(t => t.projectId === parseInt(currentProjectFilter.value)) : tasks) : 
+                                    tasks.filter(t => t.projectId === selectedProjectId);
+
+            tasksForCounting.forEach(task => { 
                 if(task.status) taskStatusCounts[task.status]++;
             });
-            filterTaskStatusCheckboxesContainer.querySelectorAll('.status-checkbox-item').forEach(item => {
+            currentStatusCheckboxes.querySelectorAll('.status-checkbox-item').forEach(item => {
                 const checkbox = item.querySelector('input[type="checkbox"]');
                 const label = item.querySelector('label');
                 const statusValue = checkbox.value;
@@ -1484,55 +1705,74 @@
 
 
             if (freeTextFilter) {
-                projectTasks = projectTasks.filter(task => 
+                tasksToDisplay = tasksToDisplay.filter(task => 
                     (task.description && task.description.toLowerCase().includes(freeTextFilter)) ||
                     (task.updateNotes && task.updateNotes.toLowerCase().includes(freeTextFilter))
                 );
             }
             
             if (selectedStatuses.length > 0) {
-                projectTasks = projectTasks.filter(task => selectedStatuses.includes(task.status));
+                tasksToDisplay = tasksToDisplay.filter(task => selectedStatuses.includes(task.status));
             }
 
-            const sortBy = sortTasksBySelect.value;
+            const sortBy = currentSortSelect.value;
             const taskNumberMap = new Map();
             
-            [...tasks.filter(t => t.projectId === selectedProjectId)]
-                .sort((a,b) => (new Date(a.creationDate) || a.id) - (new Date(b.creationDate) || b.id))
-                .forEach((task, index) => {
-                    taskNumberMap.set(task.id, index + 1);
-                });
+            // Filter out completed/cancelled before numbering for display
+            const activeTasksForNumbering = (currentView === 'allTasks' ? tasksToDisplay : tasks.filter(t => t.projectId === selectedProjectId))
+                                            .filter(task => task.status !== 'הושלם' && task.status !== 'בוטל')
+                                            .sort((a,b) => (new Date(a.creationDate) || a.id) - (new Date(b.creationDate) || b.id));
+            
+            activeTasksForNumbering.forEach((task, index) => {
+                taskNumberMap.set(task.id, index + 1);
+            });
 
             if (sortBy === 'dueDate') {
-                projectTasks.sort((a, b) => {
+                tasksToDisplay.sort((a, b) => {
                     const dateA = a.status === 'הושלם' && a.completionDate ? new Date(a.completionDate) : (a.dueDate ? new Date(a.dueDate) : new Date(Date.now() + 8640000000000000)); 
                     const dateB = b.status === 'הושלם' && b.completionDate ? new Date(b.completionDate) : (b.dueDate ? new Date(b.dueDate) : new Date(Date.now() + 8640000000000000));
                     return dateA - dateB;
                 });
             } else if (sortBy === 'status') {
-                projectTasks.sort((a, b) => (a.status || '').localeCompare(b.status || ''));
-            } else { 
-                 projectTasks.sort((a,b) => (taskNumberMap.get(a.id) || 0) - (taskNumberMap.get(b.id) || 0));
+                tasksToDisplay.sort((a, b) => (a.status || '').localeCompare(b.status || ''));
+            } else if (sortBy === 'projectId' && currentView === 'allTasks') {
+                tasksToDisplay.sort((a,b) => {
+                    const projectA = projects.find(p => p.id === a.projectId);
+                    const projectB = projects.find(p => p.id === b.projectId);
+                    return (projectA?.name || '').localeCompare(projectB?.name || '');
+                });
+            } else { // Default sort by taskNumber (creation order of active tasks)
+                 tasksToDisplay.sort((a,b) => (taskNumberMap.get(a.id) || Infinity) - (taskNumberMap.get(b.id) || Infinity));
             }
 
-            const currentProject = projects.find(p => p.id === selectedProjectId);
-            tasksForProjectTitle.textContent = `משימות עבור פרויקט: ${currentProject ? currentProject.name : ''}`;
-            if(taskCountInTitleSpan) taskCountInTitleSpan.textContent = `(${projectTasks.length})`;
-
-
-            tasksTableBody.innerHTML = '';
-            if (projectTasks.length === 0) {
-                tasksTableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-500">אין משימות להצגה עבור פרויקט זה (או לפי הסינון).</td></tr>';
+            if (currentView === 'allTasks') {
+                allTasksListTitle.textContent = `כל המשימות (${tasksToDisplay.length})`;
             } else {
-                projectTasks.forEach(task => {
-                    const row = tasksTableBody.insertRow();
+                const currentProject = projects.find(p => p.id === selectedProjectId);
+                tasksForProjectTitle.textContent = `משימות עבור פרויקט: ${currentProject ? currentProject.name : ''}`;
+                if(taskCountInTitleSpan) taskCountInTitleSpan.textContent = `(${tasksToDisplay.length})`;
+            }
+
+
+            targetTableBody.innerHTML = '';
+            if (tasksToDisplay.length === 0) {
+                const colspan = currentView === 'allTasks' ? 7 : 6;
+                targetTableBody.innerHTML = `<tr><td colspan="${colspan}" class="text-center py-4 text-gray-500">אין משימות להצגה (או לפי הסינון).</td></tr>`;
+            } else {
+                tasksToDisplay.forEach(task => {
+                    const row = targetTableBody.insertRow();
                     row.dataset.taskId = task.id; 
                     row.className = `border-b hover:bg-gray-100 transition duration-150 ease-in-out ${task.status === 'הושלם' ? 'line-through text-gray-500' : ''}`;
                     row.style.borderColor = "var(--border-color)";
                     
                     let cell = row.insertCell(); 
-                    cell.textContent = taskNumberMap.get(task.id) || '-'; 
+                    cell.textContent = (task.status !== 'הושלם' && task.status !== 'בוטל') ? (taskNumberMap.get(task.id) || '-') : '-';
                     cell.classList.add('task-id-col');
+
+                    if (currentView === 'allTasks') {
+                        const project = projects.find(p => p.id === task.projectId);
+                        row.insertCell().textContent = project ? project.name : 'לא משויך';
+                    }
 
                     const descriptionCell = row.insertCell(); 
                     descriptionCell.textContent = task.description || '-'; 
@@ -1666,7 +1906,7 @@
 
             const saveChange = () => {
                 if (editingCancelledByEscape) { 
-                    renderTasksTable(); 
+                    renderRelevantTable(); 
                     return;
                 }
                 const newValue = inputElement.value;
@@ -1682,19 +1922,19 @@
                                 tasks[taskIndex].completionDate = null; 
                             }
                         }
-                         renderTasksTable(); 
+                         renderRelevantTable(); 
                          renderProjectsTable(); 
                     } else {
-                        renderTasksTable(); 
+                        renderRelevantTable(); 
                     }
                 } else {
-                     renderTasksTable(); 
+                     renderRelevantTable(); 
                 }
             };
             
             const cancelEdit = () => {
                 editingCancelledByEscape = true; 
-                renderTasksTable(); 
+                renderRelevantTable(); 
             };
 
             inputElement.addEventListener('blur', saveChange);
@@ -1704,7 +1944,8 @@
                     cancelEdit();
                 } else if (e.key === 'Enter') {
                     if (inputType === 'textarea') {
-                        // Allow default Enter behavior (new line). Save on blur.
+                        // For textarea, Enter (with or without Shift) should create a new line.
+                        // Save will happen on blur.
                         return; 
                     } else { 
                         e.preventDefault();
@@ -1722,7 +1963,7 @@
                 tasks[taskIndex].status = 'הושלם';
                 tasks[taskIndex].completionDate = new Date().toISOString().split('T')[0];
                 updateProjectStatusBasedOnTasks(tasks[taskIndex].projectId);
-                renderTasksTable();
+                renderRelevantTable();
                 renderProjectsTable(); 
             }
         }
@@ -1742,25 +1983,29 @@
 
 
         function openTaskModalForProject(taskToEdit = null) {
-            if (!selectedProjectId) {
-                alert("יש לבחור פרויקט לפני הוספת משימה.");
+             let currentProjectIdForModal = selectedProjectId;
+            if (currentView === 'allTasks' && taskToEdit) {
+                currentProjectIdForModal = taskToEdit.projectId;
+            }
+
+            if (!currentProjectIdForModal && !taskToEdit) {
+                alert("יש לבחור פרויקט לפני הוספת משימה, או להוסיף משימה דרך טבלת 'כל המשימות' (שם יש לבחור פרויקט).");
                 return;
             }
             taskForm.reset();
-            taskProjectIdInput.value = selectedProjectId; 
+            taskProjectIdInput.value = currentProjectIdForModal; 
             taskIdInput.value = '';
 
             if (taskToEdit) {
                 taskModalTitle.textContent = 'ערוך משימה';
                 taskIdInput.value = taskToEdit.id;
-                taskProjectIdInput.value = taskToEdit.projectId; 
                 document.getElementById('taskDescriptionModal').value = taskToEdit.description || '';
                 document.getElementById('taskUpdateNotesModal').value = taskToEdit.updateNotes || '';
                 document.getElementById('taskDueDateModal').value = taskToEdit.dueDate || '';
                 document.getElementById('taskStatusModal').value = taskToEdit.status;
             } else {
-                const selectedProjectObj = projects.find(p => p.id === selectedProjectId);
-                taskModalTitle.textContent = `הוסף משימה חדשה לפרויקט: ${selectedProjectObj ? selectedProjectObj.name : ''}`;
+                const projectForNewTask = projects.find(p => p.id === parseInt(taskProjectIdInput.value));
+                taskModalTitle.textContent = `הוסף משימה חדשה לפרויקט: ${projectForNewTask ? projectForNewTask.name : 'לא נבחר פרויקט'}`;
             }
             taskModal.style.display = 'block';
         }
@@ -1807,7 +2052,7 @@
                 tasks.push(taskData);
             }
             updateProjectStatusBasedOnTasks(currentProjectId);
-            renderTasksTable();
+            renderRelevantTable();
             renderProjectsTable(); 
             closeTaskModal();
         });
@@ -1818,7 +2063,7 @@
                 const projectIdOfDeletedTask = taskToDelete.projectId;
                 tasks = tasks.filter(t => t.id !== id);
                 updateProjectStatusBasedOnTasks(projectIdOfDeletedTask); 
-                renderTasksTable();
+                renderRelevantTable();
                 renderProjectsTable(); 
             }
         }
@@ -2217,6 +2462,178 @@
             }
         }
 
+        // --- All Tasks View ---
+        function renderAllTasksTable() {
+            allTasksTableBody.innerHTML = '';
+            let allTasksToDisplay = [...tasks];
+
+            const textFilter = filterAllTasksTextInput.value.toLowerCase();
+            const projectFilter = filterAllTasksProjectSelect.value;
+            const selectedStatusCheckboxes = Array.from(filterAllTasksStatusCheckboxesContainer.querySelectorAll('input[type="checkbox"]:checked'));
+            const selectedStatuses = selectedStatusCheckboxes.map(cb => cb.value);
+
+            // Update project filter counts
+            const projectCounts = {};
+            projects.forEach(p => projectCounts[p.id] = 0);
+            tasks.forEach(t => {
+                if(t.projectId) projectCounts[t.projectId]++;
+            });
+             Array.from(filterAllTasksProjectSelect.options).forEach(option => {
+                if (option.value) {
+                    const project = projects.find(p=>p.id === parseInt(option.value));
+                    option.textContent = `${project ? project.name : 'לא ידוע'} (${projectCounts[option.value] || 0})`;
+                }
+            });
+
+            // Update status counts for all tasks view
+            const allTaskStatusCounts = {};
+            TASK_STATUSES.forEach(status => allTaskStatusCounts[status] = 0);
+            let tasksForStatusCount = [...tasks]; // Start with all tasks
+            if (projectFilter) { // If project filter is active, count statuses only for that project's tasks
+                tasksForStatusCount = tasks.filter(t => t.projectId === parseInt(projectFilter));
+            }
+            tasksForStatusCount.forEach(task => {
+                if(task.status) allTaskStatusCounts[task.status]++;
+            });
+
+            filterAllTasksStatusCheckboxesContainer.querySelectorAll('.status-checkbox-item').forEach(item => {
+                const checkbox = item.querySelector('input[type="checkbox"]');
+                const label = item.querySelector('label');
+                const statusValue = checkbox.value;
+                label.textContent = `${statusValue} (${allTaskStatusCounts[statusValue] || 0})`;
+            });
+
+
+            if (textFilter) {
+                allTasksToDisplay = allTasksToDisplay.filter(task => 
+                    (task.description && task.description.toLowerCase().includes(textFilter)) ||
+                    (task.updateNotes && task.updateNotes.toLowerCase().includes(textFilter))
+                );
+            }
+            if (projectFilter) {
+                allTasksToDisplay = allTasksToDisplay.filter(task => task.projectId === parseInt(projectFilter));
+            }
+            if (selectedStatuses.length > 0) {
+                allTasksToDisplay = allTasksToDisplay.filter(task => selectedStatuses.includes(task.status));
+            }
+
+            const sortBy = sortAllTasksBySelect.value;
+            const taskNumberMapAll = new Map();
+            // Numbering should be based on the currently displayed (filtered) set of active tasks
+            const activeTasksForNumbering = allTasksToDisplay
+                .filter(task => task.status !== 'הושלם' && task.status !== 'בוטל')
+                .sort((a,b) => (new Date(a.creationDate) || a.id) - (new Date(b.creationDate) || b.id));
+            
+            activeTasksForNumbering.forEach((task, index) => {
+                taskNumberMapAll.set(task.id, index + 1);
+            });
+
+
+            if (sortBy === 'dueDate') {
+                allTasksToDisplay.sort((a, b) => {
+                    const dateA = a.status === 'הושלם' && a.completionDate ? new Date(a.completionDate) : (a.dueDate ? new Date(a.dueDate) : new Date(Date.now() + 8640000000000000));
+                    const dateB = b.status === 'הושלם' && b.completionDate ? new Date(b.completionDate) : (b.dueDate ? new Date(b.dueDate) : new Date(Date.now() + 8640000000000000));
+                    return dateA - dateB;
+                });
+            } else if (sortBy === 'status') {
+                allTasksToDisplay.sort((a, b) => (a.status || '').localeCompare(b.status || ''));
+            } else if (sortBy === 'projectId') {
+                allTasksToDisplay.sort((a,b) => {
+                    const projectA = projects.find(p => p.id === a.projectId);
+                    const projectB = projects.find(p => p.id === b.projectId);
+                    return (projectA?.name || '').localeCompare(projectB?.name || '');
+                });
+            } else { // Default sort by taskNumber (creation order of active tasks)
+                 allTasksToDisplay.sort((a,b) => (taskNumberMapAll.get(a.id) || Infinity) - (taskNumberMapAll.get(b.id) || Infinity));
+            }
+            
+            allTasksListTitle.textContent = `כל המשימות (${allTasksToDisplay.length})`;
+
+            if (allTasksToDisplay.length === 0) {
+                allTasksTableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-gray-500">אין משימות להצגה (או לפי הסינון).</td></tr>';
+            } else {
+                allTasksToDisplay.forEach(task => {
+                    const row = allTasksTableBody.insertRow();
+                    row.dataset.taskId = task.id;
+                    row.className = `border-b hover:bg-gray-100 transition duration-150 ease-in-out ${task.status === 'הושלם' ? 'line-through text-gray-500' : ''}`;
+                    
+                    let cell = row.insertCell(); 
+                    cell.textContent = (task.status !== 'הושלם' && task.status !== 'בוטל') ? (taskNumberMapAll.get(task.id) || '-') : '-';
+                    cell.classList.add('task-id-col');
+
+                    const project = projects.find(p => p.id === task.projectId);
+                    row.insertCell().textContent = project ? project.name : 'לא משויך';
+                    
+                    const descriptionCell = row.insertCell(); 
+                    descriptionCell.textContent = task.description || '-'; 
+                    descriptionCell.classList.add('description-col'); 
+                    descriptionCell.dataset.fieldkey = 'description'; 
+                    descriptionCell.dataset.inputtype = 'textarea';  
+                    descriptionCell.onclick = (e) => handleCellClickForEditing(descriptionCell, task.id, 'task');
+
+                    const updateNotesCell = row.insertCell(); 
+                    updateNotesCell.textContent = task.updateNotes || '-'; 
+                    updateNotesCell.classList.add('task-update-notes-col');
+                    updateNotesCell.dataset.fieldkey = 'updateNotes'; 
+                    updateNotesCell.dataset.inputtype = 'textarea';   
+                    updateNotesCell.onclick = (e) => handleCellClickForEditing(updateNotesCell, task.id, 'task');
+
+                    const dateCell = row.insertCell(); 
+                    dateCell.classList.add('task-date-col');
+                    if (task.status === 'הושלם' && task.completionDate) {
+                        dateCell.textContent = new Date(task.completionDate).toLocaleDateString('he-IL');
+                    } else {
+                        dateCell.textContent = task.dueDate ? new Date(task.dueDate).toLocaleDateString('he-IL') : '-';
+                        dateCell.dataset.fieldkey = 'dueDate'; 
+                        dateCell.dataset.inputtype = 'date';    
+                        dateCell.onclick = (e) => { if(task.status !== 'הושלם') handleCellClickForEditing(dateCell, task.id, 'task'); };
+                    }
+                    
+                    const statusCell = row.insertCell();
+                    statusCell.classList.add('task-status-col');
+                    const statusBadge = document.createElement('span');
+                    statusBadge.textContent = task.status;
+                    statusBadge.className = `status-badge ${getStatusClass(task.status)}`;
+                    statusCell.appendChild(statusBadge);
+                    statusCell.dataset.fieldkey = 'status'; 
+                    statusCell.dataset.inputtype = 'select'; 
+                    statusCell.dataset.options = JSON.stringify(TASK_STATUSES); 
+                    statusCell.onclick = (e) => handleCellClickForEditing(statusCell, task.id, 'task');
+
+                    const actionsCell = row.insertCell();
+                    actionsCell.className = 'actions-col'; 
+                    const actionsWrapper = document.createElement('div');
+                    actionsWrapper.className = 'actions-cell-content';
+
+                    if (task.status !== 'הושלם') {
+                        const completeBtn = document.createElement('button'); completeBtn.innerHTML = '✔️'; completeBtn.title = 'סמן כהושלם';
+                        completeBtn.className = 'text-green-500 hover:text-green-700 table-action-button';
+                        completeBtn.onclick = (e) => { e.stopPropagation(); markTaskCompleted(task.id); };
+                        actionsWrapper.appendChild(completeBtn);
+                    }
+                    
+                    const editBtnModal = document.createElement('button'); editBtnModal.innerHTML = '✏️'; editBtnModal.title = 'ערוך במודל';
+                    editBtnModal.className = 'text-blue-500 hover:text-blue-700 table-action-button';
+                    editBtnModal.onclick = (e) => { e.stopPropagation(); openEditTaskModal(task.id); };
+                    actionsWrapper.appendChild(editBtnModal);
+
+                    const deleteBtn = document.createElement('button'); deleteBtn.innerHTML = '🗑️'; deleteBtn.title = 'מחק משימה';
+                    deleteBtn.className = 'text-red-500 hover:text-red-700 table-action-button';
+                    deleteBtn.onclick = (e) => { e.stopPropagation(); deleteTask(task.id); };
+                    actionsWrapper.appendChild(deleteBtn);
+                    actionsCell.appendChild(actionsWrapper);
+                });
+            }
+        }
+
+        function renderRelevantTable() {
+            if (currentView === 'allTasks') {
+                renderAllTasksTable();
+            } else if (currentView === 'projects' && selectedProjectId) { 
+                renderTasksTable();
+            }
+        }
+
 
         // Event Listeners for Modals and Filters
         openProjectModalButton.addEventListener('click', () => openProjectModal());
@@ -2271,6 +2688,20 @@
         filterProjectTextInput.addEventListener('input', renderProjectsTable);
         filterProjectTypeSelect.addEventListener('change', renderProjectsTable);
         sortProjectsBySelect.addEventListener('change', renderProjectsTable);
+        // All Tasks filter listeners
+        filterAllTasksTextInput.addEventListener('input', renderAllTasksTable);
+        filterAllTasksProjectSelect.addEventListener('change', renderAllTasksTable);
+        sortAllTasksBySelect.addEventListener('change', renderAllTasksTable);
+
+        toggleProjectFiltersButton.addEventListener('click', () => {
+            projectFiltersContainer.classList.toggle('hidden-filters');
+        });
+        toggleTaskFiltersButton.addEventListener('click', () => {
+            taskFiltersContainer.classList.toggle('hidden-filters');
+        });
+        toggleAllTasksFiltersButton.addEventListener('click', () => {
+            allTasksFiltersContainer.classList.toggle('hidden-filters');
+        });
 
 
         // Initial check for login status
